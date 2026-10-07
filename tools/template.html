@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>RRB Scale II IT Plan</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%230E5A6A%22/%3E%3Cpath d=%22M9 17l5 5 9-11%22 stroke=%22white%22 stroke-width=%223.5%22 fill=%22none%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: app-like single column. Sticky tab bar; Today tab opens with progress + "Next up" hero, then the day's checklist with one-tap links into Oliveboard. */
+:root{
+  --paper:#F4F6F3; --card:#FFFFFF; --ink:#16232A; --muted:#5A6A70; --line:#D7DDD8;
+  --accent:#0E5A6A; --accent-ink:#FFFFFF; --accent-soft:#E2EFF1; --notes:#9A6512; --notes-soft:#F7EEDD;
+  --warn:#963838; --warn-soft:#F6E5E3; --ok:#2C7A4B; --ok-soft:#E1F1E7;
+  --q:#0E5A6A; --r:#6A3FA0; --pk:#1F5FAF; --fa:#9A6512; --e:#2C7A4B; --c:#8A4B2A;
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --paper:#101719; --card:#172124; --ink:#E4ECEA; --muted:#98A9AD; --line:#2A373B;
+  --accent:#62B6C6; --accent-ink:#0B1A1D; --accent-soft:#1B3237; --notes:#E3AE52; --notes-soft:#33291A;
+  --warn:#E48A84; --warn-soft:#3A2220; --ok:#6CC28F; --ok-soft:#1A3326;
+  --q:#62B6C6; --r:#B79AE6; --pk:#7FB0F0; --fa:#E3AE52; --e:#6CC28F; --c:#E0A07E;
+  color-scheme:dark }}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--paper);color:var(--ink);font:15px/1.55 var(--body);margin:0}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h2{font-size:22px;font-weight:800}
+h3{font-size:16px;font-weight:600}
+p{margin:0;max-width:70ch}
+a{color:var(--accent)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:13px}
+.eyebrow{font:500 11.5px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.top{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.top-in{max-width:880px;margin:0 auto;padding:10px 16px 0;display:grid;gap:8px}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.brand h1{font-size:19px;font-weight:800}
+.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;padding:8px 12px 9px;font:600 14px var(--body);color:var(--muted);cursor:pointer;white-space:nowrap;min-height:44px}
+.tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+main{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:18px 80px}
+.panel{display:grid;gap:22px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:4px;min-width:0}
+.stat b{font:800 26px/1 var(--display)}
+.stat span{font:500 11px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.stat.good b{color:var(--ok)} .stat.bad b{color:var(--warn)}
+.ring{--p:0;width:54px;height:54px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center}
+.ring i{width:40px;height:40px;border-radius:50%;background:var(--card);display:grid;place-items:center;font:600 12px var(--mono);font-style:normal}
+.next{background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:18px;display:grid;gap:12px}
+.next .eyebrow{color:inherit;opacity:.8}
+.next h2{font-size:clamp(20px,4.5vw,26px)}
+.next .sub{opacity:.85;font-size:14px}
+.next .acts{display:flex;flex-wrap:wrap;gap:8px}
+.next .btn{background:var(--accent-ink);color:var(--accent);border-color:transparent}
+.next .btn.ghost{background:transparent;color:var(--accent-ink);border-color:currentColor}
+.next .done-btn{background:transparent;color:var(--accent-ink);border:1px solid currentColor}
+.next .pending{color:var(--accent-ink);opacity:.85}
+.btn,button.plain{display:inline-flex;align-items:center;gap:6px;font:600 13.5px var(--body);text-decoration:none;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:42px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.sm{padding:6px 10px;min-height:36px;font-size:13px}
+.btn:hover,button.plain:hover{border-color:var(--accent)}
+.btn:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dayhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
+.daynav{display:flex;gap:6px}
+.block{display:grid;gap:8px}
+.block-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.block-h .mono{color:var(--accent);font-size:13px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start}
+.item.done{opacity:.55}
+.item.done .t{text-decoration:line-through}
+.check{width:24px;height:24px;margin:1px 0 0;accent-color:var(--accent);cursor:pointer}
+.ibody{display:grid;gap:7px;min-width:0}
+.t{font-weight:600;font-size:15.5px;line-height:1.35;cursor:pointer}
+.meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--muted)}
+.chip{font:500 11px/1 var(--mono);padding:4px 6px;border-radius:4px;white-space:nowrap;border:1px solid currentColor}
+.s-Q{color:var(--q)} .s-R{color:var(--r)} .s-PK{color:var(--pk)} .s-FA,.s-GS,.s-CA{color:var(--fa)} .s-E{color:var(--e)} .s-C{color:var(--c)}
+.sp{font:500 11px/1 var(--mono);padding:4px 6px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
+.sp.notes{background:var(--notes-soft);color:var(--notes)}
+.sp.test{background:var(--ink);color:var(--paper)}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.how{font-size:13px;color:var(--muted)}
+.pending{font-size:12.5px;color:var(--notes)}
+.mem{display:grid;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
+.mem-row{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13.5px}
+.carry{border:1px dashed var(--notes);border-radius:10px;background:var(--notes-soft)}
+.carry>summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none}
+.carry>summary::-webkit-details-marker{display:none}
+.carry .list{padding:0 10px 10px;display:grid;gap:8px}
+.callout{background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
+.bars{display:grid;gap:12px}
+.bar{display:grid;grid-template-columns:140px minmax(0,1fr) 64px;gap:10px;align-items:center}
+.track{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:6px}
+.bar .mono{font-size:12px;text-align:right;color:var(--muted)}
+.weeks-chart{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px;align-items:end;height:140px;padding-top:8px}
+.wcol{display:grid;gap:4px;align-items:end;height:100%;grid-template-rows:1fr auto}
+.wbar{background:var(--line);border-radius:4px 4px 0 0;height:100%;display:flex;align-items:flex-end}
+.wbar i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0}
+.wcol span{font:500 10px var(--mono);color:var(--muted);text-align:center}
+.tests{display:grid;gap:6px}
+.trow{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:14px}
+.ok{color:var(--ok);font:600 12px var(--mono)} .todo{color:var(--muted);font:500 12px var(--mono)}
+details.week{background:var(--card);border:1px solid var(--line);border-radius:10px}
+details.week[open]{border-color:var(--accent)}
+details.week>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+details.week>summary::-webkit-details-marker{display:none}
+.wk-dates{font:500 13px/1 var(--mono);color:var(--muted);min-width:128px}
+.wk-title{font:600 15px/1.3 var(--display);flex:1;min-width:150px}
+.wk-prog{font:500 12px/1 var(--mono);color:var(--muted)}
+.wk-prog.full{color:var(--ok)}
+.wk-body{padding:0 12px 12px;display:grid}
+.cday{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;padding:10px 2px;border-top:1px solid var(--line)}
+.cday .d{font:500 12px/1.4 var(--mono);color:var(--muted)}
+.cday .d button{all:unset;cursor:pointer;color:var(--ink);font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.cday .d button:focus-visible{outline:2px solid var(--accent)}
+.cday.is-today .d button{color:var(--accent)}
+.citems{display:grid;gap:5px;min-width:0}
+.ci{display:flex;gap:8px;align-items:flex-start;font-size:13.5px}
+.ci input{margin-top:3px;width:17px;height:17px;accent-color:var(--accent);flex:none}
+.ci label{cursor:pointer;min-width:0}
+.ci input:checked+label{text-decoration:line-through;color:var(--muted)}
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:600px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 11px/1.3 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--paper)}
+td.num,th.num{text-align:right;font-family:var(--mono);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.rank{font:800 18px/1 var(--display);color:var(--accent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
+.card ul,ol.rules{margin:0;padding-left:18px;display:grid;gap:6px}
+.free{color:var(--ok);font:600 11px var(--mono)} .lock{color:var(--warn);font:600 11px var(--mono)}
+textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;z-index:9}
+@media (max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.bar{grid-template-columns:100px minmax(0,1fr) 56px}.cday{grid-template-columns:1fr}.trow{grid-template-columns:1fr auto}.trow .mono{grid-column:1/-1}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand"><h1>RRB Scale II IT Plan</h1><span class="eyebrow" id="countdown"></span></div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button>
+      <button class="tab" role="tab" data-tab="progress" aria-selected="false">Progress</button>
+      <button class="tab" role="tab" data-tab="calendar" aria-selected="false">Calendar</button>
+      <button class="tab" role="tab" data-tab="strategy" aria-selected="false">Strategy</button>
+      <button class="tab" role="tab" data-tab="resources" aria-selected="false">Resources</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section class="panel" id="p-today" role="tabpanel">
+  <div class="stats">
+    <div class="stat" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><div class="ring" id="ring"><i id="ringTxt">0%</i></div><div style="display:grid;gap:4px"><b id="sOverall" style="font-size:20px">0 / 0</b><span>whole plan done</span></div></div>
+    <div class="stat"><b id="sToday">0 / 0</b><span>done today</span></div>
+    <div class="stat" id="sStatusBox"><b id="sStatus">On track</b><span id="sStatusSub">nothing pending</span></div>
+    <div class="stat"><b id="sDays">–</b><span>days to exam</span></div>
+  </div>
+  <div id="next"></div>
+  <div id="carry"></div>
+  <div class="dayhead">
+    <div style="display:grid;gap:2px"><span class="eyebrow" id="dayPhase"></span><h2 id="dayTitle"></h2></div>
+    <div class="daynav">
+      <button type="button" class="plain" id="prevDay" aria-label="Previous day">◀</button>
+      <button type="button" class="plain" id="todayBtn">Today</button>
+      <button type="button" class="plain" id="nextDay" aria-label="Next day">▶</button>
+    </div>
+  </div>
+  <div id="dayBody" class="panel" style="gap:18px"></div>
+  <p class="small muted">Video and Quiz buttons open Oliveboard in a new tab. Stay logged in to oliveboard.in in this browser and they open straight to the class.</p>
+</section>
+
+<section class="panel" id="p-progress" role="tabpanel" hidden>
+  <h2>Progress</h2>
+  <div class="card"><h3>By subject</h3><div class="bars" id="bars"></div></div>
+  <div class="card"><h3>By week</h3><div class="weeks-chart" id="wchart" aria-label="Share of each week's items done"></div></div>
+  <div class="card"><h3>Tests and mocks</h3><div class="tests" id="testList"></div></div>
+</section>
+
+<section class="panel" id="p-calendar" role="tabpanel" hidden>
+  <h2>Full calendar</h2>
+  <p class="small muted">Tap a date to open it in Today. Classes end 4 Dec, mocks + revision run 5–13 Dec, then a taper until the exam on 20 Dec.</p>
+  <div id="weeks" style="display:grid;gap:10px"></div>
+</section>
+
+<section class="panel" id="p-strategy" role="tabpanel" hidden>
+  <h2>How to crack it</h2>
+  <p>Six sections, <b>each with its own timer</b>, unequal marks, −¼ for a wrong answer. Put your effort where the marks per hour are highest:</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>#</th><th>Section</th><th class="num">Qs · Marks</th><th class="num">Time</th><th>How to win it</th></tr></thead>
+    <tbody>
+      <tr><td class="rank">1</td><td><b>Financial Awareness</b></td><td class="num">40 · 40</td><td class="num">15 min</td><td>The cheapest 40 marks: pure recall, about 22 seconds a question. Banking static + Govt Schemes + Jul–Nov banking/RBI news. Cards every Saturday. Target <b>28+</b>.</td></tr>
+      <tr><td class="rank">2</td><td><b>Professional Knowledge (IT)</b></td><td class="num">40 · 40</td><td class="num">30 min</td><td>Your home ground. All 40 classes at 2×; each class's Quiz + Imp Qs is your PK question bank. Networks, DBMS/SQL, OS and DS/Algo carry the most. Target <b>26+</b>.</td></tr>
+      <tr><td class="rank">3</td><td><b>Reasoning</b></td><td class="num">40 · 40</td><td class="num">30 min</td><td>One class every night; puzzles + seating are about half the paper. In the exam: inequality, syllogism and coding first, then puzzles. Target <b>25+</b>.</td></tr>
+      <tr><td class="rank">4</td><td><b>Quant + DI</b></td><td class="num">40 · 40</td><td class="num">30 min</td><td>7–8 AM daily, and practised again at 8:30 PM. Arithmetic, then every DI type. Simplification/approximation are quick marks once calculation is fast. Target <b>24+</b>.</td></tr>
+      <tr><td class="rank">5</td><td>Computer Knowledge</td><td class="num">40 · 20</td><td class="num">15 min</td><td>Half a mark each, and about half overlaps PK. Notes for the basics; watch only what's unique. Target <b>13+</b>.</td></tr>
+      <tr><td class="rank">6</td><td>English</td><td class="num">40 · 20</td><td class="num">30 min</td><td>Half a mark each. Watch the exam-type classes; grammar from Notes + Imp Qs. Target <b>12+</b>.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="small muted">Pattern as reported by published guides for 2026 (240 Qs, 200 marks, 150 min); check it against your notification. Targets add up to about 128/200 and are suggested working goals, not official cut-offs.</p>
+  <h2>One class, step by step (from basics)</h2>
+  <div class="grid2">
+    <div class="card"><h3>1 · Watch actively</h3><ul><li>Speed as shown. Lost on something new? Drop to 1.25×; weekends have room.</li><li>When an example starts, <b>pause and solve it first</b>, then play.</li><li>Write only formulas, shortcuts and traps. The class PDF has the rest.</li></ul></div>
+    <div class="card"><h3>2 · Practise the same day</h3><ul><li><b>Quiz</b>, untimed. You're learning, not racing.</li><li><b>Imp Qs</b>: aim for about 1 minute each.</li><li>Each wrong answer → one line in your error log: topic, question, why.</li></ul></div>
+    <div class="card"><h3>3 · Repeat it spaced out</h3><ul><li>Quant: practised again at 8:30 PM the same day.</li><li>Saturday: 45-min weekly revision of the week's error log + Cards.</li><li>December: Notes/PDF only, never the full video again.</li></ul></div>
+    <div class="card"><h3>4 · Then speed</h3><ul><li>From November the free tests train section timing (30/30/30/15/30/15).</li><li>Push speed only once accuracy is above 80%.</li><li>Before a mock, fix your section order. After it, an hour of analysis.</li></ul></div>
+  </div>
+  <h2>The routine</h2>
+  <div class="grid2">
+    <div class="card"><h3>7:00–8:00 AM · Quant</h3><ul><li>One class at 1.5× (~40 min) + 15 min Quiz.</li><li>All 49 remaining Quant classes are done by 25 Nov; after that, timed DI and arithmetic drills.</li></ul></div>
+    <div class="card"><h3>8:30–11:45 PM</h3><ul><li>8:30: 20-min Quant practice on the morning topic.</li><li>Then Reasoning (every night) + 1–2 of PK-IT, Banking/FA, English, Computer, CA. Every item shows its start time, watch time and practice time.</li><li>11:25: Daily CA Quiz + error log. 11:45: sleep.</li></ul></div>
+    <div class="card"><h3>Weekends · ~5h + the 7–8 Quant</h3><ul><li>Saturday starts with the 45-min weekly revision.</li><li>Sundays carry the tests: diagnostics in October, full mocks from 8 Nov.</li></ul></div>
+    <div class="card"><h3>Missed a day?</h3><ul><li>It shows under "Pending" on Today. Clear it on the weekend; don't double up on weeknights.</li><li>More than 4 nights behind: drop CA videos first (keep the Daily Quiz), then Mains-puzzle repeats, then English. Never drop PK, quizzes, mock analysis or sleep.</li></ul></div>
+  </div>
+  <div class="callout"><h3>Rules that win marks</h3><ol class="rules">
+    <li><b>Accuracy over attempts.</b> At −0.25, answer only if you can rule out at least 2 options.</li>
+    <li><b>No borrowing time between sections.</b> Practise each with its own timer from November.</li>
+    <li><b>One error log</b>, reviewed every Saturday and twice in December.</li>
+    <li><b>Don't chase live classes</b> (10 AM–6 PM). Recordings are ready by night; the calendar follows release dates.</li>
+  </ol></div>
+</section>
+
+<section class="panel" id="p-resources" role="tabpanel" hidden>
+  <h2>What's in the Oliveboard account</h2>
+  <div class="grid2">
+    <div class="card"><h3>The course</h3><ul>
+      <li>449 classes, ~566h without Hindi; live classes run until 27 Nov.</li>
+      <li>Each class page has the video plus Summary, Detailed Notes, Quiz, Flash Cards and Class PDF.</li>
+      <li><b>209 to watch</b> (~143h at the speeds shown) + <b>~70h of practice</b>. <b>67 via Notes</b>. <b>161 skipped</b> (23 Hindi, 126 old or non-finance CA, 12 Computer repeats of PK). 12 already watched.</li>
+      <li><a href="https://courses.oliveboard.in/exams/?c=2426&i=banking" target="_blank" rel="noopener">Open the course page ↗</a></li>
+    </ul></div>
+    <div class="card"><h3>Full mocks for this exam <span class="free">INCLUDED</span></h3><ul>
+      <li><a href="https://u1.oliveboard.in/tests/?c=rrbscale2offit&i=banking" target="_blank" rel="noopener">RRB Scale2 Officer IT 1–5</a>: 240 Qs, 150 min, 200 marks.</li>
+      <li>Scheduled 8 Nov, 22 Nov, 29 Nov, 6 Dec and 13 Dec.</li>
+    </ul></div>
+    <div class="card"><h3>Free tests <span class="free">FREE · 1 EACH</span></h3><ul>
+      <li><a href="https://u1.oliveboard.in/tests/?c=rrbscale2offen&i=banking" target="_blank" rel="noopener">RRB Scale II General Officer Mock 1</a>: 200 Qs, same non-IT sections.</li>
+      <li><a href="https://u1.oliveboard.in/tests/?c=licjem&i=banking" target="_blank" rel="noopener">LIC AE/AAO IT Mains 1</a>: IT professional knowledge.</li>
+      <li>Prelims test 1 of <a href="https://u1.oliveboard.in/tests/?c=ibpsrrbscp&i=banking" target="_blank" rel="noopener">IBPS RRB Officer</a>, <a href="https://u1.oliveboard.in/tests/?c=ibpsrrbasp&i=banking" target="_blank" rel="noopener">RRB Assistant</a>, <a href="https://u1.oliveboard.in/tests/?c=sbipopre19&i=banking" target="_blank" rel="noopener">SBI PO</a>, <a href="https://u1.oliveboard.in/tests/?c=ibpsprelim&i=banking" target="_blank" rel="noopener">IBPS PO</a>, <a href="https://u1.oliveboard.in/tests/?c=sbiclerkpre2020&i=banking" target="_blank" rel="noopener">SBI Clerk</a>, <a href="https://u1.oliveboard.in/tests/?c=ibpsclerkprelim&i=banking" target="_blank" rel="noopener">IBPS Clerk</a>, <a href="https://u1.oliveboard.in/tests/?c=rbiassistantp&i=banking" target="_blank" rel="noopener">RBI Assistant</a>, <a href="https://u1.oliveboard.in/tests/?c=nicl&i=banking" target="_blank" rel="noopener">NICL AO</a>, <a href="https://u1.oliveboard.in/tests/?c=uiicao&i=banking" target="_blank" rel="noopener">UIIC AO</a>, <a href="https://u1.oliveboard.in/tests/?c=niacl&i=banking" target="_blank" rel="noopener">NIACL AO</a>, <a href="https://u1.oliveboard.in/tests/?c=licap&i=banking" target="_blank" rel="noopener">LIC AAO</a>.</li>
+      <li><a href="https://discuss.oliveboard.in/caquiz2/?i=banking" target="_blank" rel="noopener">Daily CA Quiz</a> · <a href="https://u1.oliveboard.in/tests/?c=videolessons&i=banking" target="_blank" rel="noopener">Concept Videos</a> (extra practice questions).</li>
+    </ul></div>
+    <div class="card"><h3>Locked on this plan <span class="lock">NOT INCLUDED</span></h3><ul>
+      <li>All past-year papers, including IBPS SO IT Mains 2023–25 and IBPS RRB Officer.</li>
+      <li>Tests 2+ of other exams; Banking Super Practice.</li>
+      <li>Union Bank SO IT, SBI SO Systems, AIC IT mocks.</li>
+      <li>Not needed to crack this. The only add-on worth considering is more full RRB-pattern mocks for December.</li>
+    </ul></div>
+  </div>
+  <details class="week"><summary><span class="wk-title" id="skipCount">Skipped classes</span></summary><div style="padding:0 16px 14px;display:grid;gap:6px;font-size:13.5px" id="skipList"></div></details>
+  <div class="card">
+    <h3>Move your ticks to another device</h3>
+    <p class="small muted">Ticks are saved in this browser only. Copy the code, open this site on the other device, paste it and press Load.</p>
+    <textarea id="syncBox" aria-label="Progress code" placeholder="Paste a progress code here"></textarea>
+    <div class="steps"><button type="button" class="plain" id="copyCode">Copy my progress code</button><button type="button" class="plain" id="loadCode">Load pasted code</button></div>
+  </div>
+  <p class="small muted">Built from the Oliveboard course on __UPDATED__. Upcoming live classes get their video link after they air.</p>
+</section>
+</main>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DATA = __DATA__;
+const COURSE = "https://courses.oliveboard.in/exams/?c=2426&i=banking";
+const VID = id => `https://courses.oliveboard.in/edge/videosplus/index.php?c=2426&session=0&i=banking&classid=${id}`;
+const MAT = (id, tab) => `https://courses.oliveboard.in/edge/videosplus/material.php?c=2426&session=0&i=banking&classid=${id}&dtab=${tab}`;
+const CV = "https://u1.oliveboard.in/tests/?c=videolessons&i=banking";
+const CAQ = "https://discuss.oliveboard.in/caquiz2/?i=banking";
+const SUBJ = {Q:"Quant",R:"Reasoning",PK:"PK-IT",FA:"Banking & FA",GS:"Govt Schemes",CA:"Current Affairs",E:"English",C:"Computer"};
+const SUBJ_ORDER = ["FA","GS","CA","PK","R","Q","C","E"];
+const PRACTICE = {Q:"Quiz, untimed", R:"Quiz + Imp Qs, then one extra set from Concept Videos", PK:"Quiz + Imp Qs (your PK question bank)", FA:"Quiz, then go through the Flash Cards", E:"Quiz + Imp Qs", C:"Quiz", CA:"Quiz"};
+const KEY = "rrb-it-plan-v2", TABKEY = "rrb-it-plan-tab";
+
+let ticks = {};
+try { ticks = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { ticks = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch (e) {} };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const isoLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseIso = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const fmtDay = s => parseIso(s).toLocaleDateString("en-IN", {weekday:"long", day:"numeric", month:"long"});
+const fmtShort = s => parseIso(s).toLocaleDateString("en-IN", {weekday:"short", day:"numeric", month:"short"});
+const hm = m => { const h = Math.floor(m/60); return `${((h+11)%12)+1}:${pad(m%60)}`; };
+const dur = m => m >= 60 ? `${Math.floor(m/60)}h ${pad(m%60)}m` : `${m}m`;
+const phaseOf = s => s <= "2026-12-04" ? "Phase 1 · Learn + practise" : (s <= "2026-12-13" ? "Phase 2 · Mocks + revision" : "Phase 3 · Taper");
+
+const days = DATA.days;
+const byDate = Object.fromEntries(days.map((d,i) => [d.date, i]));
+const realToday = isoLocal(new Date());
+const clampDate = s => s < days[0].date ? days[0].date : (s > days[days.length-1].date ? days[days.length-1].date : s);
+let cur = clampDate(realToday);
+
+function dayItems(d){
+  const out = [];
+  d.am.forEach(e => out.push({kind:"class", slot:"am", e, id:e.id}));
+  d.tasks.filter(t => t.slot === "am").forEach(t => out.push({kind:"task", slot:"am", t, id:t.id}));
+  d.tests.forEach(t => out.push({kind:"test", slot:"test", t, id:t.id}));
+  d.tasks.filter(t => t.slot === "pm0").forEach(t => out.push({kind:"task", slot:"pm0", t, id:t.id}));
+  d.pm.forEach(e => out.push({kind:"class", slot:"pm", e, id:e.id}));
+  d.tasks.filter(t => t.slot === "pm").forEach(t => out.push({kind:"task", slot:"pm", t, id:t.id}));
+  d.tasks.filter(t => t.slot === "close").forEach(t => out.push({kind:"task", slot:"close", t, id:t.id}));
+  return out;
+}
+const ALL = days.flatMap(d => dayItems(d).map(x => ({...x, date:d.date})));
+
+function link(cls, href, text){ return `<a class="${cls}" href="${href}" target="_blank" rel="noopener">${text}</a>`; }
+function stepButtons(x, big){
+  const main = big ? "btn" : "btn sm primary", sec = big ? "btn ghost" : "btn sm";
+  if (x.kind === "class"){
+    const e = x.e;
+    if (e.mem) return "";
+    if (e.cid){
+      let b = link(main, VID(e.cid), e.m === "watch" ? `▶ Watch ${e.sp}×` : "▶ Open class");
+      if (e.q) b += link(sec, MAT(e.cid,"quiz"), "Quiz") + link(sec, MAT(e.cid,"qna"), "Imp Qs");
+      b += link(sec, MAT(e.cid,"dnotes"), "Notes");
+      if (e.s === "FA" || e.s === "PK") b += link(sec, MAT(e.cid,"fcard"), "Cards");
+      return b;
+    }
+    const airs = e.rel ? `airs ${fmtShort(e.rel)}` : "not out yet";
+    return link(sec, COURSE, "▶ Find it on the course page") + `<span class="pending">Live class, ${airs}. Direct link gets added after it airs.</span>`;
+  }
+  if (x.kind === "test") return link(main, x.t.url, "Open test ↗");
+  const t = x.t;
+  if (t.slot === "close") return link(main, CAQ, "Daily CA Quiz ↗");
+  if (t.id.startsWith("qp-")){
+    let b = t.cid ? link(main, MAT(t.cid,"quiz"), "Morning class Quiz") + link(sec, MAT(t.cid,"qna"), "Imp Qs") : "";
+    if (t.cv) b += link(sec, CV, `Concept Videos › ${esc(t.cv)}`);
+    return b;
+  }
+  if (t.url) return link(main, t.url, "Open test ↗");
+  return "";
+}
+const itemTitle = x => x.kind === "class" ? x.e.t : x.t.t;
+function itemMeta(x, start){
+  if (x.kind === "class"){
+    const e = x.e;
+    let c = `<span class="chip s-${e.s}">${SUBJ[e.s]}</span>`;
+    c += e.m === "watch" ? `<span class="sp">${e.sp}×</span>` : `<span class="sp notes">Notes</span>`;
+    if (start != null) c += `<span class="mono">${hm(start)}</span>`;
+    c += e.m === "watch" && e.pr ? `<span>watch ${dur(e.w)} → practise ${e.pr}m</span>` : `<span>~${dur(e.est)}</span>`;
+    return c;
+  }
+  if (x.kind === "test") return `<span class="sp test">Test</span><span>~${dur(x.t.est)}</span>`;
+  const t = x.t;
+  if (t.id.startsWith("qp-")) return `<span class="chip s-Q">Quant practice</span>${start!=null?`<span class="mono">${hm(start)}</span>`:""}<span>20m</span>`;
+  if (t.id.startsWith("wk-")) return `<span class="chip s-Q">Weekly revision</span><span>45m</span>`;
+  if (t.slot === "close") return `<span class="mono">${start!=null?"11:25":"end of day"}</span><span>20m</span>`;
+  if (t.slot === "am") return `<span class="chip s-Q">Quant</span><span class="sp test">Drill</span>`;
+  return `<span class="sp test">${/sectional|attempt/i.test(t.t)?"Timed":"Revise"}</span>`;
+}
+function itemHow(x){
+  if (x.kind !== "class") return "";
+  const e = x.e;
+  if (e.m === "notes") return `<span class="how">${esc(e.why)}</span>`;
+  if (x.slot === "am" && e.est > 60) return `<span class="how">Practice: Quiz. Running past 8? Do the Quiz in tonight's 8:30 slot.</span>`;
+  return e.pr ? `<span class="how">Then practise: ${PRACTICE[e.s] || "Quiz"}</span>` : "";
+}
+function members(x){
+  if (x.kind !== "class" || !x.e.mem) return "";
+  return `<div class="mem">${x.e.mem.map(m => `<div class="mem-row"><span>${esc(m.t)}</span>${m.cid ? link("btn sm primary", MAT(m.cid,"dnotes"), "Notes") + link("btn sm", MAT(m.cid,"qna"), "Imp Qs") + link("btn sm", MAT(m.cid,"fcard"), "Cards") : link("btn sm", COURSE, "Course page")}</div>`).join("")}</div>`;
+}
+function itemCard(x, start, prefix){
+  const done = !!ticks[x.id];
+  return `<div class="item${done?" done":""}" data-row="${x.id}"><input class="check" type="checkbox" id="t-${prefix||""}${x.id}" data-id="${x.id}"${done?" checked":""}><div class="ibody"><label for="t-${prefix||""}${x.id}" class="t">${esc(itemTitle(x))}</label><div class="meta">${prefix?`<span class="mono">${fmtShort(x.date)}</span>`:""}${itemMeta(x, start)}</div>${itemHow(x)}<div class="steps">${stepButtons(x,false)}</div>${members(x)}</div></div>`;
+}
+
+function renderStats(){
+  const total = ALL.length, done = ALL.filter(x => ticks[x.id]).length, pct = Math.round(100*done/total);
+  document.getElementById("ring").style.setProperty("--p", pct);
+  document.getElementById("ringTxt").textContent = pct + "%";
+  document.getElementById("sOverall").textContent = `${done} / ${total}`;
+  const t = clampDate(realToday), todayItems = ALL.filter(x => x.date === t);
+  document.getElementById("sToday").textContent = `${todayItems.filter(x => ticks[x.id]).length} / ${todayItems.length}`;
+  const behind = ALL.filter(x => x.date < realToday && !ticks[x.id] && x.slot !== "close").length;
+  const box = document.getElementById("sStatusBox");
+  box.classList.toggle("good", behind === 0); box.classList.toggle("bad", behind > 4);
+  document.getElementById("sStatus").textContent = behind === 0 ? "On track" : `${behind} pending`;
+  document.getElementById("sStatusSub").textContent = behind === 0 ? "nothing left from earlier days" : (behind > 4 ? "clear on the weekend" : "from earlier days");
+  const n = Math.max(0, Math.round((new Date(2026,11,20) - parseIso(realToday)) / 864e5));
+  document.getElementById("sDays").textContent = n;
+  document.getElementById("countdown").textContent = n > 0 ? `${n} days · exam 20 Dec` : "Exam day";
+}
+function renderNext(){
+  const el = document.getElementById("next"), t = clampDate(realToday);
+  const pick = ALL.find(x => x.date === t && !ticks[x.id] && x.slot !== "close") || ALL.find(x => x.date < t && !ticks[x.id] && x.slot !== "close");
+  if (!pick){ el.innerHTML = `<div class="next"><span class="eyebrow">Next up</span><h2>Today's list is done.</h2><p class="sub">Daily CA Quiz + error log, then rest. Tap ▶ below to see tomorrow.</p></div>`; return; }
+  const when = pick.date < t ? `Pending from ${fmtShort(pick.date)}` : ({am:"This morning · 7:00", pm0:"Tonight · 8:30", pm:"Tonight", test:"Today's test"}[pick.slot] || "Today");
+  const sub = pick.kind === "class" ? (pick.e.m === "watch" ? `${SUBJ[pick.e.s]} · ${pick.e.sp}× · watch ${dur(pick.e.w)}` + (pick.e.pr ? `, then ${pick.e.pr} min practice: ${PRACTICE[pick.e.s]||"Quiz"}` : "") : `${SUBJ[pick.e.s]} · Notes + Imp Qs`) : (pick.kind === "test" ? `~${dur(pick.t.est)}` : "");
+  el.innerHTML = `<div class="next"><span class="eyebrow">Next up · ${when}</span><h2>${esc(itemTitle(pick))}</h2>${sub?`<p class="sub">${esc(sub)}</p>`:""}<div class="acts">${stepButtons(pick,true)}<button type="button" class="btn done-btn" data-done="${pick.id}">✓ Mark done</button></div>${members(pick)}</div>`;
+}
+function renderCarry(){
+  const box = document.getElementById("carry");
+  const pending = ALL.filter(x => x.date < realToday && !ticks[x.id] && x.slot !== "close");
+  if (!pending.length){ box.innerHTML = ""; return; }
+  const open = box.querySelector("details")?.open;
+  box.innerHTML = `<details class="carry"${open?" open":""}><summary>Pending from earlier days · ${pending.length} ▾</summary><div class="list">${pending.slice(0,15).map(x => itemCard(x, null, "p-")).join("")}${pending.length>15?`<p class="small muted">+ ${pending.length-15} more in Calendar.</p>`:""}</div></details>`;
+}
+function renderDay(){
+  const d = days[byDate[cur]], wd = parseIso(cur).getDay(), weekend = wd === 0 || wd === 6;
+  document.getElementById("dayTitle").textContent = (cur === realToday ? "Today · " : "") + fmtDay(cur);
+  document.getElementById("dayPhase").textContent = phaseOf(cur) + (weekend ? " · weekend" : " · weeknight");
+  const items = dayItems(d);
+  let h = `<div class="block"><div class="block-h"><h3>Morning</h3><span class="mono">7:00 – 8:00 · Quant</span></div>${items.filter(x=>x.slot==="am").map(x => itemCard(x, x.kind==="class"?7*60:null)).join("")}</div>`;
+  const tests = items.filter(x => x.slot === "test");
+  if (tests.length) h += `<div class="block"><div class="block-h"><h3>Test</h3><span class="mono">${weekend?"do this first, while fresh":""}</span></div>${tests.map(x => itemCard(x,null)).join("")}</div>`;
+  let t0 = 20*60+30;
+  const night = items.filter(x => ["pm0","pm","close"].includes(x.slot)).map(x => { const s = weekend ? null : t0; if (x.slot !== "close") t0 += (x.kind==="class" ? x.e.est : (x.t.est || 0)); return itemCard(x, s); }).join("");
+  h += `<div class="block"><div class="block-h"><h3>${weekend ? "Day block" : "Night"}</h3><span class="mono">${weekend ? "~5h, your hours" : "8:30 – 11:45 PM"}</span></div>${night}</div>`;
+  if (cur === "2026-12-19") h += `<div class="callout"><h3>Tomorrow is the exam.</h3><p>Admit card, photo ID, reach early. Keep your section order: FA in 15 minutes, PK in 30.</p></div>`;
+  document.getElementById("dayBody").innerHTML = h;
+}
+function renderToday(){ renderStats(); renderNext(); renderCarry(); renderDay(); }
+
+function groupWeeks(){
+  const weeks = [];
+  days.forEach(d => { const dt = parseIso(d.date), mon = new Date(dt); mon.setDate(dt.getDate() - ((dt.getDay()+6)%7)); const k = isoLocal(mon); if (!weeks.length || weeks[weeks.length-1].k !== k) weeks.push({k, days:[]}); weeks[weeks.length-1].days.push(d); });
+  return weeks;
+}
+function renderProgress(){
+  const by = {};
+  ALL.forEach(x => { const s = x.kind === "class" ? x.e.s : (x.kind === "test" ? "TEST" : "TASK"); (by[s] ||= {n:0,d:0}); by[s].n++; if (ticks[x.id]) by[s].d++; });
+  const rows = [...SUBJ_ORDER.map(s => [SUBJ[s], by[s]]), ["Tests & mocks", by.TEST], ["Practice & revision", by.TASK]].filter(r => r[1]);
+  document.getElementById("bars").innerHTML = rows.map(([n, v]) => { const p = Math.round(100*v.d/v.n); return `<div class="bar"><span class="small">${n}</span><div class="track" role="progressbar" aria-label="${n}" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:${p}%"></div></div><span class="mono">${v.d}/${v.n}</span></div>`; }).join("");
+  document.getElementById("wchart").innerHTML = groupWeeks().map(w => { const ids = w.days.flatMap(d => dayItems(d).map(x => x.id)); const p = ids.length ? Math.round(100*ids.filter(i => ticks[i]).length/ids.length) : 0; const f = parseIso(w.days[0].date); return `<div class="wcol" title="Week of ${fmtShort(w.days[0].date)}: ${p}% done"><div class="wbar"><i style="height:${p}%"></i></div><span>${f.getDate()}/${f.getMonth()+1}</span></div>`; }).join("");
+  document.getElementById("testList").innerHTML = ALL.filter(x => x.kind === "test").map(x => `<div class="trow"><span class="mono small">${fmtShort(x.date)}</span><span>${esc(x.t.t.split(":")[0])}</span><span class="${ticks[x.id]?"ok":"todo"}">${ticks[x.id]?"✓ done":"to do"}</span></div>`).join("");
+}
+function renderCalendar(){
+  document.getElementById("weeks").innerHTML = groupWeeks().map((w, wi) => {
+    const first = w.days[0].date, last = w.days[w.days.length-1].date, ids = [];
+    const body = w.days.map(d => {
+      const parts = dayItems(d).filter(x => x.slot !== "close").map(x => {
+        ids.push(x.id);
+        let lbl;
+        if (x.kind === "class") lbl = `<span class="chip s-${x.e.s}">${x.slot==="am"?"AM ":""}${SUBJ[x.e.s]}</span> ${esc(x.e.t)}`;
+        else if (x.kind === "test") lbl = `<span class="sp test">Test</span> ${esc(x.t.t.split(":")[0])}`;
+        else lbl = esc(x.t.id.startsWith("qp-") ? "PM Quant practice, 20 min" : x.t.id.startsWith("wk-") ? "Weekly revision, 45 min" : x.t.t);
+        return `<div class="ci"><input type="checkbox" id="k-${x.id}" data-id="${x.id}"${ticks[x.id]?" checked":""}><label for="k-${x.id}">${lbl}</label></div>`;
+      }).join("");
+      return `<div class="cday${d.date===realToday?" is-today":""}"><div class="d"><button type="button" data-goto="${d.date}">${fmtShort(d.date)}</button></div><div class="citems">${parts}</div></div>`;
+    }).join("");
+    const done = ids.filter(i => ticks[i]).length;
+    const mock = w.days.flatMap(d => d.tests).map(t => t.t.startsWith("★") ? t.t.split(":")[0].replace("★ ","") : "free test").filter((v,i,a) => a.indexOf(v) === i).join(" + ");
+    const open = (realToday >= first && realToday <= last) || (wi === 0 && realToday < first);
+    return `<details class="week" data-ids="${ids.join(",")}"${open?" open":""}><summary><span class="wk-dates">${fmtShort(first)} – ${fmtShort(last)}</span><span class="wk-title">${esc(phaseOf(first).split(" · ")[1] + (mock ? " · " + mock : ""))}</span><span class="wk-prog${done===ids.length?" full":""}">${done}/${ids.length}</span></summary><div class="wk-body">${body}</div></details>`;
+  }).join("");
+}
+function refreshWeekProg(){
+  document.querySelectorAll("details.week[data-ids]").forEach(det => { const ids = det.dataset.ids.split(",").filter(Boolean); const d = ids.filter(i => ticks[i]).length; const el = det.querySelector(".wk-prog"); el.textContent = `${d}/${ids.length}`; el.classList.toggle("full", d === ids.length); });
+}
+function renderSkipped(){
+  const list = DATA.skipped.filter(s => s.s !== "H"), hindi = DATA.skipped.length - list.length;
+  document.getElementById("skipCount").textContent = `Skipped on purpose: ${list.length + hindi} classes ▾`;
+  const groups = {}; list.forEach(s => (groups[s.why] ||= []).push(s.t));
+  document.getElementById("skipList").innerHTML = Object.entries(groups).map(([why, ts]) => `<p><b>${esc(why)}</b>: <span class="muted">${ts.length > 10 ? esc(ts.slice(0,10).join(" · ")) + ` … +${ts.length-10} more` : esc(ts.join(" · "))}</span></p>`).join("") + `<p><b>Hindi</b>: <span class="muted">all ${hindi} classes (English chosen)</span></p>`;
+}
+
+let toastT;
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 1800); }
+function setTick(id, on){
+  if (on) ticks[id] = 1; else delete ticks[id];
+  save();
+  document.querySelectorAll(`input[data-id="${CSS.escape(id)}"]`).forEach(b => b.checked = on);
+  document.querySelectorAll(`[data-row="${CSS.escape(id)}"]`).forEach(r => r.classList.toggle("done", on));
+  renderStats(); renderNext(); renderCarry(); renderProgress(); refreshWeekProg();
+  if (on) toast("Done ✓");
+}
+document.addEventListener("change", ev => { const id = ev.target?.dataset?.id; if (id) setTick(id, ev.target.checked); });
+document.addEventListener("click", ev => {
+  const done = ev.target.closest("[data-done]"); if (done){ setTick(done.dataset.done, true); return; }
+  const go = ev.target.closest("[data-goto]"); if (go){ cur = go.dataset.goto; renderDay(); showTab("today"); document.getElementById("dayTitle").scrollIntoView({block:"start"}); }
+});
+function shift(n){ cur = days[Math.min(days.length-1, Math.max(0, byDate[cur] + n))].date; renderDay(); }
+document.getElementById("prevDay").onclick = () => shift(-1);
+document.getElementById("nextDay").onclick = () => shift(1);
+document.getElementById("todayBtn").onclick = () => { cur = clampDate(realToday); renderDay(); };
+function showTab(name){
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  document.querySelectorAll("main>section").forEach(s => s.hidden = s.id !== "p-" + name);
+}
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => { showTab(b.dataset.tab); window.scrollTo({top:0}); });
+document.getElementById("copyCode").onclick = async () => {
+  const code = btoa(Object.keys(ticks).join(",")); const box = document.getElementById("syncBox"); box.value = code;
+  try { await navigator.clipboard.writeText(code); toast("Code copied"); } catch (e) { box.select(); toast("Select the code and copy it"); }
+};
+document.getElementById("loadCode").onclick = () => {
+  try { const ids = atob(document.getElementById("syncBox").value.trim()).split(",").filter(Boolean); if (!ids.length) throw 0; ids.forEach(i => ticks[i] = 1); save(); renderAll(); toast(`Loaded ${ids.length} ticks`); }
+  catch (e) { toast("That code didn't load. Copy the whole code again."); }
+};
+function renderAll(){ renderToday(); renderProgress(); renderCalendar(); renderSkipped(); }
+renderAll();
+const startTab = (location.hash || "").replace("#","");
+showTab(["today","progress","calendar","strategy","resources"].includes(startTab) ? startTab : "today");
+</script>
+</body>
+</html>
