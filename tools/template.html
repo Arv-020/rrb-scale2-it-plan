@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: app-like single column. Sticky tab bar; Today tab opens with progress + "Next up" hero, then the day's checklist with one-tap links into Oliveboard. */
+/* Layout: phone = one column (stats → Next up → day list). Desktop ≥1024px = day list on the left, sticky progress sidebar on the right. The plan re-flows in the browser from whatever is already done. */
 :root{
   --paper:#F4F6F3; --card:#FFFFFF; --ink:#16232A; --muted:#5A6A70; --line:#D7DDD8;
   --accent:#0E5A6A; --accent-ink:#FFFFFF; --accent-soft:#E2EFF1; --notes:#9A6512; --notes-soft:#F7EEDD;
@@ -39,8 +39,9 @@ a{color:var(--accent)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)} .small{font-size:13px}
 .eyebrow{font:500 11.5px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
 .top{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
-.top-in{max-width:880px;margin:0 auto;padding:10px 16px 0;display:grid;gap:8px}
+.top-in{max-width:1180px;margin:0 auto;padding:10px 16px 0;display:grid;gap:6px}
 .brand{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .brand h1{font-size:19px;font-weight:800}
 .tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
@@ -48,29 +49,49 @@ a{color:var(--accent)}
 .tab{background:none;border:0;border-bottom:3px solid transparent;border-radius:0;padding:8px 12px 9px;font:600 14px var(--body);color:var(--muted);cursor:pointer;white-space:nowrap;min-height:44px}
 .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
 .tab:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-main{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:18px 80px}
-.panel{display:grid;gap:22px}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+main{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:18px 80px}
+.panel{display:grid;gap:22px;align-content:start}
+
+/* Today layout */
+.today-grid{display:grid;gap:20px}
+.side{display:grid;gap:12px;align-content:start}
+.desk-only{display:none!important}
+@media (min-width:1024px){
+  .today-grid{grid-template-columns:minmax(0,1fr) 340px;align-items:start}
+  .side{position:sticky;top:112px;order:2}
+  .desk-only{display:grid!important}
+  .stats{grid-template-columns:1fr 1fr!important}
+}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;gap:4px;min-width:0}
-.stat b{font:800 26px/1 var(--display)}
-.stat span{font:500 11px/1.3 var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.stat.good b{color:var(--ok)} .stat.bad b{color:var(--warn)}
-.ring{--p:0;width:54px;height:54px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center}
-.ring i{width:40px;height:40px;border-radius:50%;background:var(--card);display:grid;place-items:center;font:600 12px var(--mono);font-style:normal}
+.stat b{font:800 24px/1 var(--display)}
+.stat span{font:500 11px/1.3 var(--mono);letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.stat.wide{grid-column:1/-1;grid-template-columns:auto 1fr;align-items:center;gap:12px}
+.good b,.good .big{color:var(--ok)} .bad b,.bad .big{color:var(--warn)}
+.ring{--p:0;width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--line) 0);display:grid;place-items:center}
+.ring i{width:44px;height:44px;border-radius:50%;background:var(--card);display:grid;place-items:center;font:600 12px var(--mono);font-style:normal}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:10px;align-content:start;min-width:0}
+.card ul,ol.rules{margin:0;padding-left:18px;display:grid;gap:6px}
+.big{font:800 20px/1.1 var(--display)}
+
 .next{background:var(--accent);color:var(--accent-ink);border-radius:14px;padding:18px;display:grid;gap:12px}
 .next .eyebrow{color:inherit;opacity:.8}
 .next h2{font-size:clamp(20px,4.5vw,26px)}
-.next .sub{opacity:.85;font-size:14px}
+.next .sub{opacity:.88;font-size:14px}
 .next .acts{display:flex;flex-wrap:wrap;gap:8px}
 .next .btn{background:var(--accent-ink);color:var(--accent);border-color:transparent}
 .next .btn.ghost{background:transparent;color:var(--accent-ink);border-color:currentColor}
-.next .done-btn{background:transparent;color:var(--accent-ink);border:1px solid currentColor}
 .next .pending{color:var(--accent-ink);opacity:.85}
+.next .mem{border-color:currentColor}
+.next .mem .btn{background:var(--accent-ink);color:var(--accent)}
+
 .btn,button.plain{display:inline-flex;align-items:center;gap:6px;font:600 13.5px var(--body);text-decoration:none;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;min-height:42px}
 .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 .btn.sm{padding:6px 10px;min-height:36px;font-size:13px}
+.btn.link{border:0;background:none;color:var(--muted);text-decoration:underline;text-underline-offset:3px;padding:6px 4px;min-height:36px;font-weight:500}
 .btn:hover,button.plain:hover{border-color:var(--accent)}
 .btn:focus-visible,button:focus-visible,input:focus-visible,summary:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 .dayhead{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .daynav{display:flex;gap:6px}
 .block{display:grid;gap:8px}
@@ -88,29 +109,26 @@ main{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:18px 80px}
 .sp{font:500 11px/1 var(--mono);padding:4px 6px;border-radius:4px;background:var(--accent-soft);color:var(--accent)}
 .sp.notes{background:var(--notes-soft);color:var(--notes)}
 .sp.test{background:var(--ink);color:var(--paper)}
+.sp.half{background:var(--ok-soft);color:var(--ok)}
 .steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .how{font-size:13px;color:var(--muted)}
 .pending{font-size:12.5px;color:var(--notes)}
 .mem{display:grid;gap:6px;border-top:1px dashed var(--line);padding-top:8px}
 .mem-row{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:13.5px}
-.carry{border:1px dashed var(--notes);border-radius:10px;background:var(--notes-soft)}
-.carry>summary{cursor:pointer;padding:12px 14px;font-weight:600;list-style:none}
-.carry>summary::-webkit-details-marker{display:none}
-.carry .list{padding:0 10px 10px;display:grid;gap:8px}
+.warnbox{border:1px dashed var(--warn);background:var(--warn-soft);border-radius:10px;padding:12px 14px;display:grid;gap:8px}
 .callout{background:var(--accent-soft);border-radius:10px;padding:14px 16px;display:grid;gap:8px}
-.bars{display:grid;gap:12px}
-.bar{display:grid;grid-template-columns:140px minmax(0,1fr) 64px;gap:10px;align-items:center}
-.track{height:12px;border-radius:6px;background:var(--line);overflow:hidden}
-.fill{height:100%;background:var(--accent);border-radius:6px}
+
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:118px minmax(0,1fr) 58px;gap:10px;align-items:center}
+.track{height:10px;border-radius:5px;background:var(--line);overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:5px}
 .bar .mono{font-size:12px;text-align:right;color:var(--muted)}
-.weeks-chart{display:grid;grid-template-columns:repeat(11,minmax(0,1fr));gap:6px;align-items:end;height:140px;padding-top:8px}
-.wcol{display:grid;gap:4px;align-items:end;height:100%;grid-template-rows:1fr auto}
-.wbar{background:var(--line);border-radius:4px 4px 0 0;height:100%;display:flex;align-items:flex-end}
-.wbar i{display:block;width:100%;background:var(--accent);border-radius:4px 4px 0 0}
-.wcol span{font:500 10px var(--mono);color:var(--muted);text-align:center}
 .tests{display:grid;gap:6px}
-.trow{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:14px}
+.trow{display:grid;grid-template-columns:90px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:13.5px}
+.side .trow{grid-template-columns:78px minmax(0,1fr);padding:6px 8px}
+.side .trow .st{display:none}
 .ok{color:var(--ok);font:600 12px var(--mono)} .todo{color:var(--muted);font:500 12px var(--mono)}
+
 details.week{background:var(--card);border:1px solid var(--line);border-radius:10px}
 details.week[open]{border-color:var(--accent)}
 details.week>summary{cursor:pointer;list-style:none;padding:12px 14px;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
@@ -120,8 +138,8 @@ details.week>summary::-webkit-details-marker{display:none}
 .wk-prog{font:500 12px/1 var(--mono);color:var(--muted)}
 .wk-prog.full{color:var(--ok)}
 .wk-body{padding:0 12px 12px;display:grid}
-.cday{display:grid;grid-template-columns:88px minmax(0,1fr);gap:10px;padding:10px 2px;border-top:1px solid var(--line)}
-.cday .d{font:500 12px/1.4 var(--mono);color:var(--muted)}
+.cday{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:10px 2px;border-top:1px solid var(--line)}
+.cday .d{font:500 12px/1.4 var(--mono);color:var(--muted);display:grid;gap:2px;align-content:start}
 .cday .d button{all:unset;cursor:pointer;color:var(--ink);font-weight:600;font-size:13px;text-decoration:underline;text-underline-offset:3px}
 .cday .d button:focus-visible{outline:2px solid var(--accent)}
 .cday.is-today .d button{color:var(--accent)}
@@ -130,6 +148,9 @@ details.week>summary::-webkit-details-marker{display:none}
 .ci input{margin-top:3px;width:17px;height:17px;accent-color:var(--accent);flex:none}
 .ci label{cursor:pointer;min-width:0}
 .ci input:checked+label{text-decoration:line-through;color:var(--muted)}
+.subjgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.subj-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+
 .table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--card)}
 table{border-collapse:collapse;width:100%;min-width:600px}
 th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
@@ -138,12 +159,10 @@ td.num,th.num{text-align:right;font-family:var(--mono);white-space:nowrap}
 tr:last-child td{border-bottom:0}
 .rank{font:800 18px/1 var(--display);color:var(--accent)}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:8px;align-content:start;min-width:0}
-.card ul,ol.rules{margin:0;padding-left:18px;display:grid;gap:6px}
 .free{color:var(--ok);font:600 11px var(--mono)} .lock{color:var(--warn);font:600 11px var(--mono)}
 textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;z-index:9}
-@media (max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.bar{grid-template-columns:100px minmax(0,1fr) 56px}.cday{grid-template-columns:1fr}.trow{grid-template-columns:1fr auto}.trow .mono{grid-column:1/-1}}
+@media (max-width:620px){.stat{padding:10px}.stat b{font-size:20px}.ring{width:48px;height:48px}.ring i{width:36px;height:36px}.cday{grid-template-columns:1fr}.trow{grid-template-columns:1fr auto}.trow .mono{grid-column:1/-1}.subjgrid{grid-template-columns:1fr}.bar{grid-template-columns:96px minmax(0,1fr) 52px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -153,6 +172,7 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
     <div class="brand"><h1>RRB Scale II IT Plan</h1><span class="eyebrow" id="countdown"></span></div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button>
+      <button class="tab" role="tab" data-tab="done" aria-selected="false">Already done</button>
       <button class="tab" role="tab" data-tab="progress" aria-selected="false">Progress</button>
       <button class="tab" role="tab" data-tab="calendar" aria-selected="false">Calendar</button>
       <button class="tab" role="tab" data-tab="strategy" aria-selected="false">Strategy</button>
@@ -163,36 +183,55 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
 
 <main>
 <section class="panel" id="p-today" role="tabpanel">
-  <div class="stats">
-    <div class="stat" style="grid-template-columns:auto 1fr;align-items:center;gap:10px"><div class="ring" id="ring"><i id="ringTxt">0%</i></div><div style="display:grid;gap:4px"><b id="sOverall" style="font-size:20px">0 / 0</b><span>whole plan done</span></div></div>
-    <div class="stat"><b id="sToday">0 / 0</b><span>done today</span></div>
-    <div class="stat" id="sStatusBox"><b id="sStatus">On track</b><span id="sStatusSub">nothing pending</span></div>
-    <div class="stat"><b id="sDays">–</b><span>days to exam</span></div>
-  </div>
-  <div id="next"></div>
-  <div id="carry"></div>
-  <div class="dayhead">
-    <div style="display:grid;gap:2px"><span class="eyebrow" id="dayPhase"></span><h2 id="dayTitle"></h2></div>
-    <div class="daynav">
-      <button type="button" class="plain" id="prevDay" aria-label="Previous day">◀</button>
-      <button type="button" class="plain" id="todayBtn">Today</button>
-      <button type="button" class="plain" id="nextDay" aria-label="Next day">▶</button>
+  <div class="today-grid">
+    <aside class="side" aria-label="Your progress">
+      <div class="stats">
+        <div class="stat wide"><div class="ring" id="ring"><i id="ringTxt">0%</i></div><div style="display:grid;gap:3px"><b id="sClasses" style="font-size:20px">0 / 0</b><span>classes done (syllabus)</span></div></div>
+        <div class="stat"><b id="sToday">0 / 0</b><span>done today</span></div>
+        <div class="stat" id="sFinishBox"><b id="sFinish">–</b><span id="sFinishSub">classes finish</span></div>
+        <div class="stat desk-only"><b id="sDays">–</b><span>days to exam</span></div>
+        <div class="stat desk-only"><b id="sTests">0 / 0</b><span>tests done</span></div>
+      </div>
+      <div class="card desk-only"><h3>By subject</h3><div class="bars" id="sideBars"></div></div>
+      <div class="card desk-only"><h3>Coming tests</h3><div class="tests" id="sideTests"></div></div>
+    </aside>
+    <div class="panel" style="gap:18px;min-width:0">
+      <div id="first"></div>
+      <div id="next"></div>
+      <div id="missed"></div>
+      <div class="dayhead">
+        <div style="display:grid;gap:2px"><span class="eyebrow" id="dayPhase"></span><h2 id="dayTitle"></h2></div>
+        <div class="daynav">
+          <button type="button" class="plain" id="prevDay" aria-label="Previous day">◀</button>
+          <button type="button" class="plain" id="todayBtn">Today</button>
+          <button type="button" class="plain" id="nextDay" aria-label="Next day">▶</button>
+        </div>
+      </div>
+      <div id="dayBody" class="panel" style="gap:18px"></div>
+      <p class="small muted">The plan re-arranges itself: tick something and the next class moves up; miss a night and it moves to the next free slot. Video and Quiz buttons open Oliveboard. Stay logged in there in this browser.</p>
     </div>
   </div>
-  <div id="dayBody" class="panel" style="gap:18px"></div>
-  <p class="small muted">Video and Quiz buttons open Oliveboard in a new tab. Stay logged in to oliveboard.in in this browser and they open straight to the class.</p>
+</section>
+
+<section class="panel" id="p-done" role="tabpanel" hidden>
+  <h2>Already done</h2>
+  <p>Tick everything you've already covered (from Oliveboard, YouTube, books, anywhere). Those classes leave the plan, and everything after moves up, so you start from your next class, not from zero. To skip a whole subject or a run of classes, use "Mark all".</p>
+  <div class="callout"><p class="small"><b>From your Oliveboard record (7 Oct):</b> <span id="obNote"></span></p></div>
+  <div class="subjgrid" id="doneLists"></div>
 </section>
 
 <section class="panel" id="p-progress" role="tabpanel" hidden>
   <h2>Progress</h2>
-  <div class="card"><h3>By subject</h3><div class="bars" id="bars"></div></div>
-  <div class="card"><h3>By week</h3><div class="weeks-chart" id="wchart" aria-label="Share of each week's items done"></div></div>
+  <div class="grid2">
+    <div class="card"><h3>By subject</h3><div class="bars" id="bars"></div></div>
+    <div class="card"><h3>Where you stand</h3><div id="standing" style="display:grid;gap:8px"></div></div>
+  </div>
   <div class="card"><h3>Tests and mocks</h3><div class="tests" id="testList"></div></div>
 </section>
 
 <section class="panel" id="p-calendar" role="tabpanel" hidden>
-  <h2>Full calendar</h2>
-  <p class="small muted">Tap a date to open it in Today. Classes end 4 Dec, mocks + revision run 5–13 Dec, then a taper until the exam on 20 Dec.</p>
+  <h2>Calendar</h2>
+  <p class="small muted">Past days show what you actually did. From today on it's the live plan, recalculated from what's left. Tap a date to open it in Today.</p>
   <div id="weeks" style="display:grid;gap:10px"></div>
 </section>
 
@@ -213,23 +252,23 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
   <p class="small muted">Pattern as reported by published guides for 2026 (240 Qs, 200 marks, 150 min); check it against your notification. Targets add up to about 128/200 and are suggested working goals, not official cut-offs.</p>
   <h2>One class, step by step (from basics)</h2>
   <div class="grid2">
-    <div class="card"><h3>1 · Watch actively</h3><ul><li>Speed as shown. Lost on something new? Drop to 1.25×; weekends have room.</li><li>When an example starts, <b>pause and solve it first</b>, then play.</li><li>Write only formulas, shortcuts and traps. The class PDF has the rest.</li></ul></div>
+    <div class="card"><h3>1 · Watch actively</h3><ul><li>Speed as shown. Lost on something new? Drop to 1.25×; the plan re-flows if it takes longer.</li><li>When an example starts, <b>pause and solve it first</b>, then play.</li><li>Write only formulas, shortcuts and traps. The class PDF has the rest.</li></ul></div>
     <div class="card"><h3>2 · Practise the same day</h3><ul><li><b>Quiz</b>, untimed. You're learning, not racing.</li><li><b>Imp Qs</b>: aim for about 1 minute each.</li><li>Each wrong answer → one line in your error log: topic, question, why.</li></ul></div>
     <div class="card"><h3>3 · Repeat it spaced out</h3><ul><li>Quant: practised again at 8:30 PM the same day.</li><li>Saturday: 45-min weekly revision of the week's error log + Cards.</li><li>December: Notes/PDF only, never the full video again.</li></ul></div>
     <div class="card"><h3>4 · Then speed</h3><ul><li>From November the free tests train section timing (30/30/30/15/30/15).</li><li>Push speed only once accuracy is above 80%.</li><li>Before a mock, fix your section order. After it, an hour of analysis.</li></ul></div>
   </div>
   <h2>The routine</h2>
   <div class="grid2">
-    <div class="card"><h3>7:00–8:00 AM · Quant</h3><ul><li>One class at 1.5× (~40 min) + 15 min Quiz.</li><li>All 49 remaining Quant classes are done by 25 Nov; after that, timed DI and arithmetic drills.</li></ul></div>
+    <div class="card"><h3>7:00–8:00 AM · Quant</h3><ul><li>One class at 1.5× (~40 min) + 15 min Quiz.</li><li>When Quant classes run out, mornings become timed DI and arithmetic drills.</li></ul></div>
     <div class="card"><h3>8:30–11:45 PM</h3><ul><li>8:30: 20-min Quant practice on the morning topic.</li><li>Then Reasoning (every night) + 1–2 of PK-IT, Banking/FA, English, Computer, CA. Every item shows its start time, watch time and practice time.</li><li>11:25: Daily CA Quiz + error log. 11:45: sleep.</li></ul></div>
     <div class="card"><h3>Weekends · ~5h + the 7–8 Quant</h3><ul><li>Saturday starts with the 45-min weekly revision.</li><li>Sundays carry the tests: diagnostics in October, full mocks from 8 Nov.</li></ul></div>
-    <div class="card"><h3>Missed a day?</h3><ul><li>It shows under "Pending" on Today. Clear it on the weekend; don't double up on weeknights.</li><li>More than 4 nights behind: drop CA videos first (keep the Daily Quiz), then Mains-puzzle repeats, then English. Never drop PK, quizzes, mock analysis or sleep.</li></ul></div>
+    <div class="card"><h3>Behind schedule?</h3><ul><li>Watch "Classes finish" on Today. The original plan ends classes around 4–10 Dec (the last few are Current Affairs videos). Up to 13 Dec still leaves a week of mocks.</li><li>Past that: drop CA videos first (keep the Daily Quiz), then Mains-puzzle repeats, then English (mark them in "Already done" as skipped). Never drop PK, quizzes, mock analysis or sleep.</li></ul></div>
   </div>
   <div class="callout"><h3>Rules that win marks</h3><ol class="rules">
     <li><b>Accuracy over attempts.</b> At −0.25, answer only if you can rule out at least 2 options.</li>
     <li><b>No borrowing time between sections.</b> Practise each with its own timer from November.</li>
     <li><b>One error log</b>, reviewed every Saturday and twice in December.</li>
-    <li><b>Don't chase live classes</b> (10 AM–6 PM). Recordings are ready by night; the calendar follows release dates.</li>
+    <li><b>Don't chase live classes</b> (10 AM–6 PM). Recordings are ready by night; the plan follows release dates.</li>
   </ol></div>
 </section>
 
@@ -239,7 +278,7 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
     <div class="card"><h3>The course</h3><ul>
       <li>449 classes, ~566h without Hindi; live classes run until 27 Nov.</li>
       <li>Each class page has the video plus Summary, Detailed Notes, Quiz, Flash Cards and Class PDF.</li>
-      <li><b>209 to watch</b> (~143h at the speeds shown) + <b>~70h of practice</b>. <b>67 via Notes</b>. <b>161 skipped</b> (23 Hindi, 126 old or non-finance CA, 12 Computer repeats of PK). 12 already watched.</li>
+      <li><b>209 to watch</b> (~143h at the speeds shown) + <b>~70h of practice</b>. <b>67 via Notes</b>. <b>161 skipped</b> (23 Hindi, 126 old or non-finance CA, 12 Computer repeats of PK).</li>
       <li><a href="https://courses.oliveboard.in/exams/?c=2426&i=banking" target="_blank" rel="noopener">Open the course page ↗</a></li>
     </ul></div>
     <div class="card"><h3>Full mocks for this exam <span class="free">INCLUDED</span></h3><ul>
@@ -261,8 +300,8 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
   </div>
   <details class="week"><summary><span class="wk-title" id="skipCount">Skipped classes</span></summary><div style="padding:0 16px 14px;display:grid;gap:6px;font-size:13.5px" id="skipList"></div></details>
   <div class="card">
-    <h3>Move your ticks to another device</h3>
-    <p class="small muted">Ticks are saved in this browser only. Copy the code, open this site on the other device, paste it and press Load.</p>
+    <h3>Move your progress to another device</h3>
+    <p class="small muted">Progress is saved in this browser. Copy the code, open the site on your phone or laptop, paste and Load. Loading adds to what's there; it never removes anything.</p>
     <textarea id="syncBox" aria-label="Progress code" placeholder="Paste a progress code here"></textarea>
     <div class="steps"><button type="button" class="plain" id="copyCode">Copy my progress code</button><button type="button" class="plain" id="loadCode">Load pasted code</button></div>
   </div>
@@ -272,7 +311,8 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const DATA = __DATA__;
+const PLAN = __PLAN__;
+const START = "2026-10-08", LEARN_END = "2026-12-04", PRACTICE_END = "2026-12-13", LAST = "2026-12-19";
 const COURSE = "https://courses.oliveboard.in/exams/?c=2426&i=banking";
 const VID = id => `https://courses.oliveboard.in/edge/videosplus/index.php?c=2426&session=0&i=banking&classid=${id}`;
 const MAT = (id, tab) => `https://courses.oliveboard.in/edge/videosplus/material.php?c=2426&session=0&i=banking&classid=${id}&dtab=${tab}`;
@@ -281,60 +321,156 @@ const CAQ = "https://discuss.oliveboard.in/caquiz2/?i=banking";
 const SUBJ = {Q:"Quant",R:"Reasoning",PK:"PK-IT",FA:"Banking & FA",GS:"Govt Schemes",CA:"Current Affairs",E:"English",C:"Computer"};
 const SUBJ_ORDER = ["FA","GS","CA","PK","R","Q","C","E"];
 const PRACTICE = {Q:"Quiz, untimed", R:"Quiz + Imp Qs, then one extra set from Concept Videos", PK:"Quiz + Imp Qs (your PK question bank)", FA:"Quiz, then go through the Flash Cards", E:"Quiz + Imp Qs", C:"Quiz", CA:"Quiz"};
-const KEY = "rrb-it-plan-v2", TABKEY = "rrb-it-plan-tab";
+// rotation by JS weekday (0 = Sunday) — same as the original plan
+const ROT = {1:["R","PK","FA"],2:["R","FA","E"],3:["R","PK","FA"],4:["R","PK","C","E"],5:["R","FA","CA"],6:["R","PK","GS","FA","E","CA","C"],0:["FA","GS","R","PK","CA","E"]};
+const FALLBACK = ["FA","PK","R","E","C","CA","GS"];
+const PK_UNITS = ["Networks + Security","DBMS + SQL","OS + Computer Organisation","Data Structures + Algorithms","OOPs + C/Java/Python","SDLC + Web + Emerging Tech + Linux"];
+const TAPER = {"2026-12-14":"Re-attempt the wrong questions from Mocks 1 and 2","2026-12-15":"Re-attempt the wrong questions from Mocks 3 and 4","2026-12-16":"Re-attempt the wrong questions from Mock 5 + the RRB Scale II General free mock","2026-12-17":"Banking + Govt Scheme Cards, full pass (FA is 40 marks in 15 min)","2026-12-18":"PK Notes skim (one page per unit) + Quant formula sheet + CA round-ups","2026-12-19":"Light day: Cards only for 1 hour. Admit card, photo ID, centre route. Sleep by 10:30."};
+const KEY = "rrb-it-plan-v3";
 
-let ticks = {};
-try { ticks = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { ticks = {}; }
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch (e) {} };
+// ---------- helpers ----------
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const pad = n => String(n).padStart(2, "0");
 const isoLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const parseIso = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const addDays = (s, n) => { const d = parseIso(s); d.setDate(d.getDate() + n); return isoLocal(d); };
 const fmtDay = s => parseIso(s).toLocaleDateString("en-IN", {weekday:"long", day:"numeric", month:"long"});
 const fmtShort = s => parseIso(s).toLocaleDateString("en-IN", {weekday:"short", day:"numeric", month:"short"});
+const fmtDM = s => parseIso(s).toLocaleDateString("en-IN", {day:"numeric", month:"short"});
+const daysBetween = (a, b) => Math.round((parseIso(b) - parseIso(a)) / 864e5);
 const hm = m => { const h = Math.floor(m/60); return `${((h+11)%12)+1}:${pad(m%60)}`; };
 const dur = m => m >= 60 ? `${Math.floor(m/60)}h ${pad(m%60)}m` : `${m}m`;
-const phaseOf = s => s <= "2026-12-04" ? "Phase 1 · Learn + practise" : (s <= "2026-12-13" ? "Phase 2 · Mocks + revision" : "Phase 3 · Taper");
+const phaseOf = s => s <= LEARN_END ? "Phase 1 · Learn + practise" : (s <= PRACTICE_END ? "Phase 2 · Mocks + revision" : "Phase 3 · Taper");
+const link = (cls, href, text) => `<a class="${cls}" href="${href}" target="_blank" rel="noopener">${text}</a>`;
 
-const days = DATA.days;
-const byDate = Object.fromEntries(days.map((d,i) => [d.date, i]));
 const realToday = isoLocal(new Date());
-const clampDate = s => s < days[0].date ? days[0].date : (s > days[days.length-1].date ? days[days.length-1].date : s);
-let cur = clampDate(realToday);
+const planToday = realToday < START ? START : (realToday > LAST ? LAST : realToday);
+const CLASSES = Object.values(PLAN.queues).flat();
+const BY_ID = Object.fromEntries(CLASSES.map(e => [e.id, e]));
+const BASE_FINISH = Object.values(PLAN.baseline).sort().pop();
+const ALL_TESTS = Object.entries(PLAN.tests).flatMap(([d, ts]) => ts.map(t => ({...t, date:d})));
 
-function dayItems(d){
+// done: id -> "YYYY-MM-DD" (done that day) or "pre" (already done before / skipped)
+let done = {};
+try {
+  done = JSON.parse(localStorage.getItem(KEY) || "null") || {};
+  if (!Object.keys(done).length) { const old = JSON.parse(localStorage.getItem("rrb-it-plan-v2") || "{}"); Object.keys(old).forEach(k => done[k] = "pre"); }
+} catch (e) { done = {}; }
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+
+// ---------- the scheduler (same rules as the original plan, run from today on what's left) ----------
+let SIM = {}, FINISH = null, UNFIT = 0;
+function simulate(){
+  const q = {}; for (const [s, list] of Object.entries(PLAN.queues)) q[s] = list.filter(e => !done[e.id]);
+  const avail = (e, D, slot) => !e.rel || (slot === "am" ? e.rel < D : e.rel <= D);
+  const take = (s, D, slot, cap, tol = 15) => {
+    const list = q[s] || [];
+    for (let i = 0; i < Math.min(4, list.length); i++){
+      const e = list[i];
+      if (!avail(e, D, slot)) continue;
+      if (e.est > cap + tol) return null;
+      list.splice(i, 1); return e;
+    }
+    return null;
+  };
+  SIM = {}; FINISH = null;
+  let sect = 0;
+  for (let D = planToday; D <= LAST; D = addDays(D, 1)){
+    const wd = parseIso(D).getDay(), weekend = wd === 0 || wd === 6;
+    const rec = {date:D, am:[], pm:[], tasks:[], tests:(PLAN.tests[D] || [])};
+    const doneHere = D === planToday ? CLASSES.filter(e => done[e.id] === D) : [];
+    let mq = doneHere.find(e => e.s === "Q");
+    if (mq) rec.am.push(mq); else { mq = take("Q", D, "am", 60, 20); if (mq) rec.am.push(mq); }
+    if (!rec.am.length) rec.tasks.push({slot:"am", id:`amq-${D}`, t: D <= LEARN_END ? "Quant practice: Imp Qs of your last 2 Quant classes + 10 calculation questions, timed" : "Quant drill: 1 DI set + 10 arithmetic questions in 20 min, then check every wrong answer"});
+    let cap = weekend ? 300 : 175;
+    rec.tests.forEach(t => cap -= t.est);
+    if (mq && !mq.t.startsWith("How to Crack")){ rec.tasks.push({slot:"pm0", id:`qp-${D}`, t:`Quant practice on this morning's topic (${mq.t}): redo your wrong Quiz questions, then ${mq.cv ? `10 Qs from Concept Videos › ${mq.cv}` : "the class's Imp Qs again, timed"}`, est:20, cid:mq.cid, cv:mq.cv}); cap -= 20; }
+    if (wd === 6 && D <= LEARN_END){ rec.tasks.push({slot:"pm0", id:`wk-${D}`, t:"Weekly revision: redo every question in this week's error log, then the Cards of this week's Banking/FA and PK classes", est:45}); cap -= 45; }
+    const per = {};
+    doneHere.filter(e => e !== mq).forEach(e => { rec.pm.push(e); cap -= e.est; per[e.s] = (per[e.s] || 0) + 1; });
+    if (D <= LEARN_END){
+      const rot = [...ROT[wd], ...FALLBACK.filter(x => !ROT[wd].includes(x))];
+      let ptr = 0;
+      while (cap > 20){
+        let got = false;
+        for (let k = 0; k < rot.length; k++){
+          const s = rot[(ptr + k) % rot.length];
+          if ((per[s] || 0) >= (s === "GS" ? 4 : 2)) continue;
+          const e = take(s, D, "pm", cap);
+          if (e){ rec.pm.push(e); cap -= e.est; per[s] = (per[s] || 0) + 1; ptr = (ptr + k + 1) % rot.length; got = true; break; }
+        }
+        if (!got) break;
+      }
+    } else {
+      let budget = 100 - doneHere.filter(e => e !== mq).reduce((a, e) => a + e.est, 0);
+      for (const s of [...FALLBACK, "R", "Q"]){ while (budget > 20){ const e = take(s, D, "pm", budget, 10); if (!e) break; rec.pm.push(e); budget -= e.est; } }
+      if (D <= PRACTICE_END){
+        if (!rec.tests.length){
+          const sc = PLAN.sectionals[sect];
+          rec.tasks.push(sc ? {slot:"pm", id:`sec-${D}`, t:sc.t, url:sc.url} : {slot:"pm", id:`sec-${D}`, t:["Reasoning","PK-IT","Quant","English","Financial Awareness"][sect % 5] + " sectional: 40 Qs from class Quizzes / Imp Qs, strict 30-min timer (FA: 15 min)"});
+          sect++;
+        }
+        rec.tasks.push({slot:"pm", id:`pkrev-${D}`, t:`PK revision, ${PK_UNITS[daysBetween(LEARN_END, D) % 6]}: class Notes PDF + redo the Quiz`});
+        rec.tasks.push({slot:"pm", id:`farev-${D}`, t:"Financial Awareness: Cards for 3 Banking classes + 2 Govt Scheme parts"});
+      } else rec.tasks.push({slot:"pm", id:`taper-${D}`, t:TAPER[D]});
+    }
+    rec.tasks.push({slot:"close", id:`close-${D}`, t:"Close: Oliveboard daily CA Quiz (10 min) + write every wrong question in your error log (10 min)"});
+    if ([...rec.am, ...rec.pm].some(e => !done[e.id])) FINISH = D;
+    SIM[D] = rec;
+  }
+  UNFIT = Object.values(q).reduce((a, l) => a + l.length, 0);
+}
+
+// ---------- items for a day (ordered the way you'd do them) ----------
+function dayItems(D){
+  if (D < planToday){
+    // past: what you actually did that day
+    const out = CLASSES.filter(e => done[e.id] === D).map(e => ({kind:"class", slot:e.s === "Q" ? "am" : "pm", e, id:e.id}));
+    (PLAN.tests[D] || []).forEach(t => out.push({kind:"test", slot:"test", t, id:t.id}));
+    Object.keys(done).filter(k => done[k] === D && !BY_ID[k] && !k.startsWith("test-") && !k.startsWith("_")).forEach(k => out.push({kind:"task", slot:"pm", t:{id:k, t:taskLabel(k)}, id:k}));
+    return out;
+  }
+  const r = SIM[D]; if (!r) return [];
   const out = [];
-  d.am.forEach(e => out.push({kind:"class", slot:"am", e, id:e.id}));
-  d.tasks.filter(t => t.slot === "am").forEach(t => out.push({kind:"task", slot:"am", t, id:t.id}));
-  d.tests.forEach(t => out.push({kind:"test", slot:"test", t, id:t.id}));
-  d.tasks.filter(t => t.slot === "pm0").forEach(t => out.push({kind:"task", slot:"pm0", t, id:t.id}));
-  d.pm.forEach(e => out.push({kind:"class", slot:"pm", e, id:e.id}));
-  d.tasks.filter(t => t.slot === "pm").forEach(t => out.push({kind:"task", slot:"pm", t, id:t.id}));
-  d.tasks.filter(t => t.slot === "close").forEach(t => out.push({kind:"task", slot:"close", t, id:t.id}));
+  r.am.forEach(e => out.push({kind:"class", slot:"am", e, id:e.id}));
+  r.tasks.filter(t => t.slot === "am").forEach(t => out.push({kind:"task", slot:"am", t, id:t.id}));
+  r.tests.forEach(t => out.push({kind:"test", slot:"test", t, id:t.id}));
+  r.tasks.filter(t => t.slot === "pm0").forEach(t => out.push({kind:"task", slot:"pm0", t, id:t.id}));
+  r.pm.forEach(e => out.push({kind:"class", slot:"pm", e, id:e.id}));
+  r.tasks.filter(t => t.slot === "pm").forEach(t => out.push({kind:"task", slot:"pm", t, id:t.id}));
+  r.tasks.filter(t => t.slot === "close").forEach(t => out.push({kind:"task", slot:"close", t, id:t.id}));
   return out;
 }
-const ALL = days.flatMap(d => dayItems(d).map(x => ({...x, date:d.date})));
+function taskLabel(k){
+  if (k.startsWith("qp-")) return "Quant practice (evening)";
+  if (k.startsWith("wk-")) return "Weekly revision";
+  if (k.startsWith("close-")) return "Daily CA Quiz + error log";
+  if (k.startsWith("amq-")) return "Morning Quant drill";
+  if (k.startsWith("sec-")) return "Timed sectional";
+  if (k.startsWith("pkrev-")) return "PK revision";
+  if (k.startsWith("farev-")) return "FA Cards revision";
+  return "Revision";
+}
 
-function link(cls, href, text){ return `<a class="${cls}" href="${href}" target="_blank" rel="noopener">${text}</a>`; }
+// ---------- rendering pieces ----------
 function stepButtons(x, big){
   const main = big ? "btn" : "btn sm primary", sec = big ? "btn ghost" : "btn sm";
   if (x.kind === "class"){
     const e = x.e;
     if (e.mem) return "";
     if (e.cid){
-      let b = link(main, VID(e.cid), e.m === "watch" ? `▶ Watch ${e.sp}×` : "▶ Open class");
+      let b = link(main, VID(e.cid), e.m === "watch" ? (e.half ? `▶ Resume ${e.sp}×` : `▶ Watch ${e.sp}×`) : "▶ Open class");
       if (e.q) b += link(sec, MAT(e.cid,"quiz"), "Quiz") + link(sec, MAT(e.cid,"qna"), "Imp Qs");
       b += link(sec, MAT(e.cid,"dnotes"), "Notes");
       if (e.s === "FA" || e.s === "PK") b += link(sec, MAT(e.cid,"fcard"), "Cards");
       return b;
     }
-    const airs = e.rel ? `airs ${fmtShort(e.rel)}` : "not out yet";
-    return link(sec, COURSE, "▶ Find it on the course page") + `<span class="pending">Live class, ${airs}. Direct link gets added after it airs.</span>`;
+    return link(sec, COURSE, "▶ Find it on the course page") + `<span class="pending">Live class, ${e.rel ? "airs " + fmtShort(e.rel) : "not out yet"}. Direct link gets added after it airs.</span>`;
   }
   if (x.kind === "test") return link(main, x.t.url, "Open test ↗");
   const t = x.t;
   if (t.slot === "close") return link(main, CAQ, "Daily CA Quiz ↗");
-  if (t.id.startsWith("qp-")){
+  if (t.id && t.id.startsWith("qp-")){
     let b = t.cid ? link(main, MAT(t.cid,"quiz"), "Morning class Quiz") + link(sec, MAT(t.cid,"qna"), "Imp Qs") : "";
     if (t.cv) b += link(sec, CV, `Concept Videos › ${esc(t.cv)}`);
     return b;
@@ -348,14 +484,15 @@ function itemMeta(x, start){
     const e = x.e;
     let c = `<span class="chip s-${e.s}">${SUBJ[e.s]}</span>`;
     c += e.m === "watch" ? `<span class="sp">${e.sp}×</span>` : `<span class="sp notes">Notes</span>`;
+    if (e.half) c += `<span class="sp half">half watched</span>`;
     if (start != null) c += `<span class="mono">${hm(start)}</span>`;
     c += e.m === "watch" && e.pr ? `<span>watch ${dur(e.w)} → practise ${e.pr}m</span>` : `<span>~${dur(e.est)}</span>`;
     return c;
   }
   if (x.kind === "test") return `<span class="sp test">Test</span><span>~${dur(x.t.est)}</span>`;
-  const t = x.t;
-  if (t.id.startsWith("qp-")) return `<span class="chip s-Q">Quant practice</span>${start!=null?`<span class="mono">${hm(start)}</span>`:""}<span>20m</span>`;
-  if (t.id.startsWith("wk-")) return `<span class="chip s-Q">Weekly revision</span><span>45m</span>`;
+  const t = x.t, id = t.id || "";
+  if (id.startsWith("qp-")) return `<span class="chip s-Q">Quant practice</span>${start!=null?`<span class="mono">${hm(start)}</span>`:""}<span>20m</span>`;
+  if (id.startsWith("wk-")) return `<span class="chip s-Q">Weekly revision</span><span>45m</span>`;
   if (t.slot === "close") return `<span class="mono">${start!=null?"11:25":"end of day"}</span><span>20m</span>`;
   if (t.slot === "am") return `<span class="chip s-Q">Quant</span><span class="sp test">Drill</span>`;
   return `<span class="sp test">${/sectional|attempt/i.test(t.t)?"Timed":"Revise"}</span>`;
@@ -364,144 +501,188 @@ function itemHow(x){
   if (x.kind !== "class") return "";
   const e = x.e;
   if (e.m === "notes") return `<span class="how">${esc(e.why)}</span>`;
+  if (!e.pr) return "";
   if (x.slot === "am" && e.est > 60) return `<span class="how">Practice: Quiz. Running past 8? Do the Quiz in tonight's 8:30 slot.</span>`;
-  return e.pr ? `<span class="how">Then practise: ${PRACTICE[e.s] || "Quiz"}</span>` : "";
+  return `<span class="how">Then practise: ${PRACTICE[e.s] || "Quiz"}</span>`;
 }
 function members(x){
   if (x.kind !== "class" || !x.e.mem) return "";
   return `<div class="mem">${x.e.mem.map(m => `<div class="mem-row"><span>${esc(m.t)}</span>${m.cid ? link("btn sm primary", MAT(m.cid,"dnotes"), "Notes") + link("btn sm", MAT(m.cid,"qna"), "Imp Qs") + link("btn sm", MAT(m.cid,"fcard"), "Cards") : link("btn sm", COURSE, "Course page")}</div>`).join("")}</div>`;
 }
-function itemCard(x, start, prefix){
-  const done = !!ticks[x.id];
-  return `<div class="item${done?" done":""}" data-row="${x.id}"><input class="check" type="checkbox" id="t-${prefix||""}${x.id}" data-id="${x.id}"${done?" checked":""}><div class="ibody"><label for="t-${prefix||""}${x.id}" class="t">${esc(itemTitle(x))}</label><div class="meta">${prefix?`<span class="mono">${fmtShort(x.date)}</span>`:""}${itemMeta(x, start)}</div>${itemHow(x)}<div class="steps">${stepButtons(x,false)}</div>${members(x)}</div></div>`;
+function itemCard(x, start, uid){
+  const isDone = !!done[x.id], key = (uid || "t") + "-" + x.id;
+  const knew = x.kind === "class" && !isDone ? `<button type="button" class="btn link" data-pre="${x.id}">Already done earlier</button>` : (x.kind === "class" && done[x.id] === "pre" ? `<span class="small muted">marked as done before</span>` : "");
+  return `<div class="item${isDone?" done":""}" data-row="${x.id}"><input class="check" type="checkbox" id="${key}" data-id="${x.id}"${isDone?" checked":""}><div class="ibody"><label for="${key}" class="t">${esc(itemTitle(x))}</label><div class="meta">${itemMeta(x, start)}</div>${itemHow(x)}<div class="steps">${stepButtons(x,false)}${knew}</div>${members(x)}</div></div>`;
 }
 
+// ---------- Today ----------
+let cur = planToday;
 function renderStats(){
-  const total = ALL.length, done = ALL.filter(x => ticks[x.id]).length, pct = Math.round(100*done/total);
+  const cDone = CLASSES.filter(e => done[e.id]).length, pct = Math.round(100*cDone/CLASSES.length);
   document.getElementById("ring").style.setProperty("--p", pct);
   document.getElementById("ringTxt").textContent = pct + "%";
-  document.getElementById("sOverall").textContent = `${done} / ${total}`;
-  const t = clampDate(realToday), todayItems = ALL.filter(x => x.date === t);
-  document.getElementById("sToday").textContent = `${todayItems.filter(x => ticks[x.id]).length} / ${todayItems.length}`;
-  const behind = ALL.filter(x => x.date < realToday && !ticks[x.id] && x.slot !== "close").length;
-  const box = document.getElementById("sStatusBox");
-  box.classList.toggle("good", behind === 0); box.classList.toggle("bad", behind > 4);
-  document.getElementById("sStatus").textContent = behind === 0 ? "On track" : `${behind} pending`;
-  document.getElementById("sStatusSub").textContent = behind === 0 ? "nothing left from earlier days" : (behind > 4 ? "clear on the weekend" : "from earlier days");
-  const n = Math.max(0, Math.round((new Date(2026,11,20) - parseIso(realToday)) / 864e5));
+  document.getElementById("sClasses").textContent = `${cDone} / ${CLASSES.length}`;
+  const ti = dayItems(planToday).filter(x => x.slot !== "close");
+  document.getElementById("sToday").textContent = `${ti.filter(x => done[x.id]).length} / ${ti.length}`;
+  document.getElementById("sTests").textContent = `${ALL_TESTS.filter(t => done[t.id]).length} / ${ALL_TESTS.length}`;
+  const box = document.getElementById("sFinishBox");
+  if (!FINISH && UNFIT === 0){ document.getElementById("sFinish").textContent = "All done"; document.getElementById("sFinishSub").textContent = "every class covered"; box.className = "stat good"; }
+  else {
+    const late = FINISH ? daysBetween(BASE_FINISH, FINISH) : 99;
+    document.getElementById("sFinish").textContent = UNFIT ? `${UNFIT} won't fit` : fmtDM(FINISH);
+    document.getElementById("sFinishSub").textContent = UNFIT ? "before the exam: see Strategy" : (late <= 0 ? `classes finish · ${late < 0 ? -late + " days early" : "on plan"}` : `classes finish · ${late} days late`);
+    box.className = "stat " + (UNFIT || late > 9 ? "bad" : (late <= 0 ? "good" : ""));
+  }
+  const n = Math.max(0, daysBetween(realToday, "2026-12-20"));
   document.getElementById("sDays").textContent = n;
   document.getElementById("countdown").textContent = n > 0 ? `${n} days · exam 20 Dec` : "Exam day";
 }
-function renderNext(){
-  const el = document.getElementById("next"), t = clampDate(realToday);
-  const pick = ALL.find(x => x.date === t && !ticks[x.id] && x.slot !== "close") || ALL.find(x => x.date < t && !ticks[x.id] && x.slot !== "close");
-  if (!pick){ el.innerHTML = `<div class="next"><span class="eyebrow">Next up</span><h2>Today's list is done.</h2><p class="sub">Daily CA Quiz + error log, then rest. Tap ▶ below to see tomorrow.</p></div>`; return; }
-  const when = pick.date < t ? `Pending from ${fmtShort(pick.date)}` : ({am:"This morning · 7:00", pm0:"Tonight · 8:30", pm:"Tonight", test:"Today's test"}[pick.slot] || "Today");
-  const sub = pick.kind === "class" ? (pick.e.m === "watch" ? `${SUBJ[pick.e.s]} · ${pick.e.sp}× · watch ${dur(pick.e.w)}` + (pick.e.pr ? `, then ${pick.e.pr} min practice: ${PRACTICE[pick.e.s]||"Quiz"}` : "") : `${SUBJ[pick.e.s]} · Notes + Imp Qs`) : (pick.kind === "test" ? `~${dur(pick.t.est)}` : "");
-  el.innerHTML = `<div class="next"><span class="eyebrow">Next up · ${when}</span><h2>${esc(itemTitle(pick))}</h2>${sub?`<p class="sub">${esc(sub)}</p>`:""}<div class="acts">${stepButtons(pick,true)}<button type="button" class="btn done-btn" data-done="${pick.id}">✓ Mark done</button></div>${members(pick)}</div>`;
+function firstRun(){
+  const el = document.getElementById("first");
+  if (Object.keys(done).length){ el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="callout"><h3>Already studied some of this?</h3><p>Mark what you've covered in <b>Already done</b>, and the plan starts from your next class instead of from zero.</p><div class="steps"><button type="button" class="btn primary sm" data-tabgo="done">Mark what I've done</button><button type="button" class="btn sm" data-dismiss="1">Starting fresh</button></div></div>`;
 }
-function renderCarry(){
-  const box = document.getElementById("carry");
-  const pending = ALL.filter(x => x.date < realToday && !ticks[x.id] && x.slot !== "close");
-  if (!pending.length){ box.innerHTML = ""; return; }
-  const open = box.querySelector("details")?.open;
-  box.innerHTML = `<details class="carry"${open?" open":""}><summary>Pending from earlier days · ${pending.length} ▾</summary><div class="list">${pending.slice(0,15).map(x => itemCard(x, null, "p-")).join("")}${pending.length>15?`<p class="small muted">+ ${pending.length-15} more in Calendar.</p>`:""}</div></details>`;
+function renderNext(){
+  const el = document.getElementById("next");
+  const items = dayItems(planToday).filter(x => x.slot !== "close");
+  let pick = items.find(x => !done[x.id]), ahead = false;
+  if (!pick){ for (let D = addDays(planToday, 1); D <= LAST && !pick; D = addDays(D, 1)) pick = dayItems(D).find(x => x.kind === "class" && !done[x.id]); ahead = !!pick; }
+  if (!pick){ el.innerHTML = `<div class="next"><span class="eyebrow">Next up</span><h2>Everything in the plan is done.</h2><p class="sub">Keep up the mocks and the error log until 20 Dec.</p></div>`; return; }
+  const when = ahead ? "Today's list is done · start tomorrow's first item" : ({am:"This morning · 7:00", pm0:"Tonight · 8:30", pm:"Tonight", test:"Today's test"}[pick.slot] || "Today");
+  let sub = "";
+  if (pick.kind === "class") sub = pick.e.m === "watch" ? `${SUBJ[pick.e.s]} · ${pick.e.sp}× · watch ${dur(pick.e.w)}${pick.e.half ? " (rest of it)" : ""}` + (pick.e.pr ? `, then ${pick.e.pr} min practice: ${PRACTICE[pick.e.s] || "Quiz"}` : "") : `${SUBJ[pick.e.s]} · Notes + Imp Qs`;
+  else if (pick.kind === "test") sub = `~${dur(pick.t.est)}`;
+  el.innerHTML = `<div class="next"><span class="eyebrow">Next up · ${when}</span><h2>${esc(itemTitle(pick))}</h2>${sub?`<p class="sub">${esc(sub)}</p>`:""}<div class="acts">${stepButtons(pick,true)}<button type="button" class="btn ghost" data-done="${pick.id}">✓ Mark done</button></div>${members(pick)}</div>`;
+}
+function renderMissed(){
+  const el = document.getElementById("missed");
+  const missed = ALL_TESTS.filter(t => t.date < realToday && !done[t.id]);
+  el.innerHTML = missed.length ? `<div class="warnbox"><h3>Missed test${missed.length>1?"s":""}</h3>${missed.map(t => itemCard({kind:"test", slot:"test", t, id:t.id}, null, "m")).join("")}<p class="small muted">Do it this weekend, before the next one.</p></div>` : "";
 }
 function renderDay(){
-  const d = days[byDate[cur]], wd = parseIso(cur).getDay(), weekend = wd === 0 || wd === 6;
+  const wd = parseIso(cur).getDay(), weekend = wd === 0 || wd === 6, past = cur < planToday;
   document.getElementById("dayTitle").textContent = (cur === realToday ? "Today · " : "") + fmtDay(cur);
-  document.getElementById("dayPhase").textContent = phaseOf(cur) + (weekend ? " · weekend" : " · weeknight");
-  const items = dayItems(d);
-  let h = `<div class="block"><div class="block-h"><h3>Morning</h3><span class="mono">7:00 – 8:00 · Quant</span></div>${items.filter(x=>x.slot==="am").map(x => itemCard(x, x.kind==="class"?7*60:null)).join("")}</div>`;
+  document.getElementById("dayPhase").textContent = past ? "What you did" : phaseOf(cur) + (weekend ? " · weekend" : " · weeknight");
+  const items = dayItems(cur);
+  if (past){ document.getElementById("dayBody").innerHTML = items.length ? `<div class="block">${items.map(x => itemCard(x, null, "d")).join("")}</div>` : `<p class="muted">Nothing ticked on this day.</p>`; return; }
+  let h = `<div class="block"><div class="block-h"><h3>Morning</h3><span class="mono">7:00 – 8:00 · Quant</span></div>${items.filter(x=>x.slot==="am").map(x => itemCard(x, x.kind==="class"?7*60:null, "d")).join("")}</div>`;
   const tests = items.filter(x => x.slot === "test");
-  if (tests.length) h += `<div class="block"><div class="block-h"><h3>Test</h3><span class="mono">${weekend?"do this first, while fresh":""}</span></div>${tests.map(x => itemCard(x,null)).join("")}</div>`;
+  if (tests.length) h += `<div class="block"><div class="block-h"><h3>Test</h3><span class="mono">${weekend?"do this first, while fresh":""}</span></div>${tests.map(x => itemCard(x,null,"d")).join("")}</div>`;
   let t0 = 20*60+30;
-  const night = items.filter(x => ["pm0","pm","close"].includes(x.slot)).map(x => { const s = weekend ? null : t0; if (x.slot !== "close") t0 += (x.kind==="class" ? x.e.est : (x.t.est || 0)); return itemCard(x, s); }).join("");
+  const night = items.filter(x => ["pm0","pm","close"].includes(x.slot)).map(x => { const s = weekend ? null : t0; if (x.slot !== "close") t0 += (x.kind==="class" ? x.e.est : (x.t.est || 0)); return itemCard(x, s, "d"); }).join("");
   h += `<div class="block"><div class="block-h"><h3>${weekend ? "Day block" : "Night"}</h3><span class="mono">${weekend ? "~5h, your hours" : "8:30 – 11:45 PM"}</span></div>${night}</div>`;
   if (cur === "2026-12-19") h += `<div class="callout"><h3>Tomorrow is the exam.</h3><p>Admit card, photo ID, reach early. Keep your section order: FA in 15 minutes, PK in 30.</p></div>`;
   document.getElementById("dayBody").innerHTML = h;
 }
-function renderToday(){ renderStats(); renderNext(); renderCarry(); renderDay(); }
-
-function groupWeeks(){
-  const weeks = [];
-  days.forEach(d => { const dt = parseIso(d.date), mon = new Date(dt); mon.setDate(dt.getDate() - ((dt.getDay()+6)%7)); const k = isoLocal(mon); if (!weeks.length || weeks[weeks.length-1].k !== k) weeks.push({k, days:[]}); weeks[weeks.length-1].days.push(d); });
-  return weeks;
+function barsHtml(){
+  const by = {}; CLASSES.forEach(e => { (by[e.s] ||= {n:0,d:0}); by[e.s].n++; if (done[e.id]) by[e.s].d++; });
+  return SUBJ_ORDER.filter(s => by[s]).map(s => { const v = by[s], p = Math.round(100*v.d/v.n); return `<div class="bar"><span class="small">${SUBJ[s]}</span><div class="track" role="progressbar" aria-label="${SUBJ[s]}" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:${p}%"></div></div><span class="mono">${v.d}/${v.n}</span></div>`; }).join("");
 }
+function testsHtml(list){ return list.map(t => `<div class="trow"><span class="mono small">${fmtShort(t.date)}</span><span>${esc(t.t.split(":")[0])}</span><span class="st ${done[t.id]?"ok":"todo"}">${done[t.id]?"✓ done":"to do"}</span></div>`).join(""); }
+function renderSide(){
+  document.getElementById("sideBars").innerHTML = barsHtml();
+  const coming = ALL_TESTS.filter(t => !done[t.id] && t.date >= realToday).slice(0, 4);
+  document.getElementById("sideTests").innerHTML = coming.length ? testsHtml(coming) : `<p class="small muted">No tests left.</p>`;
+}
+function renderToday(){ renderStats(); firstRun(); renderNext(); renderMissed(); renderDay(); renderSide(); }
+
+// ---------- Already done ----------
+function renderDoneTab(){
+  const half = CLASSES.filter(e => e.half).map(e => e.t);
+  document.getElementById("obNote").textContent = `${PLAN.watched_before} classes fully watched are already left out of this plan. ${half.length} half-watched ones stay in with half the watch time: ${half.join(", ")}.`;
+  document.getElementById("doneLists").innerHTML = SUBJ_ORDER.filter(s => PLAN.queues[s]).map(s => {
+    const list = PLAN.queues[s], n = list.filter(e => done[e.id]).length;
+    return `<details class="week" data-k="sub-${s}"><summary><span class="wk-title">${SUBJ[s]}</span><span class="wk-prog${n===list.length?" full":""}">${n}/${list.length}</span></summary><div class="wk-body" style="gap:6px"><div class="steps" style="padding:4px 0 8px"><button type="button" class="btn sm" data-allpre="${s}">Mark all</button><button type="button" class="btn sm" data-clearpre="${s}">Clear "done before"</button></div>${list.map(e => `<div class="ci"><input type="checkbox" id="a-${e.id}" data-preid="${e.id}"${done[e.id]?" checked":""}><label for="a-${e.id}">${esc(e.t)}${done[e.id] && done[e.id] !== "pre" ? ` <span class="small muted">· done ${fmtDM(done[e.id])}</span>` : ""}</label></div>`).join("")}</div></details>`;
+  }).join("");
+}
+
+// ---------- Progress + Calendar ----------
 function renderProgress(){
-  const by = {};
-  ALL.forEach(x => { const s = x.kind === "class" ? x.e.s : (x.kind === "test" ? "TEST" : "TASK"); (by[s] ||= {n:0,d:0}); by[s].n++; if (ticks[x.id]) by[s].d++; });
-  const rows = [...SUBJ_ORDER.map(s => [SUBJ[s], by[s]]), ["Tests & mocks", by.TEST], ["Practice & revision", by.TASK]].filter(r => r[1]);
-  document.getElementById("bars").innerHTML = rows.map(([n, v]) => { const p = Math.round(100*v.d/v.n); return `<div class="bar"><span class="small">${n}</span><div class="track" role="progressbar" aria-label="${n}" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:${p}%"></div></div><span class="mono">${v.d}/${v.n}</span></div>`; }).join("");
-  document.getElementById("wchart").innerHTML = groupWeeks().map(w => { const ids = w.days.flatMap(d => dayItems(d).map(x => x.id)); const p = ids.length ? Math.round(100*ids.filter(i => ticks[i]).length/ids.length) : 0; const f = parseIso(w.days[0].date); return `<div class="wcol" title="Week of ${fmtShort(w.days[0].date)}: ${p}% done"><div class="wbar"><i style="height:${p}%"></i></div><span>${f.getDate()}/${f.getMonth()+1}</span></div>`; }).join("");
-  document.getElementById("testList").innerHTML = ALL.filter(x => x.kind === "test").map(x => `<div class="trow"><span class="mono small">${fmtShort(x.date)}</span><span>${esc(x.t.t.split(":")[0])}</span><span class="${ticks[x.id]?"ok":"todo"}">${ticks[x.id]?"✓ done":"to do"}</span></div>`).join("");
+  document.getElementById("bars").innerHTML = barsHtml();
+  document.getElementById("testList").innerHTML = testsHtml(ALL_TESTS);
+  const behind = Object.entries(PLAN.baseline).filter(([id, d]) => d < realToday && !done[id]).length;
+  const doneWeek = Object.values(done).filter(d => d !== "pre" && daysBetween(d, realToday) < 7 && d <= realToday).length;
+  document.getElementById("standing").innerHTML = `<p><b>${FINISH ? "Classes finish " + fmtDay(FINISH) : (UNFIT ? "Some classes don't fit yet" : "All classes done")}</b>. The original plan finished on ${fmtDay(BASE_FINISH)}.</p><p>${behind ? `${behind} classes from the original plan's earlier days aren't done yet; they've moved into the coming days.` : "Nothing is overdue from the original plan."}</p><p>Items ticked in the last 7 days: <b>${doneWeek}</b>.</p>${UNFIT ? `<p class="small" style="color:var(--warn)">${UNFIT} classes don't fit before 19 Dec. Use weekends, or mark low-value ones (CA videos, Mains puzzle repeats, English) as done in "Already done".</p>` : ""}`;
 }
 function renderCalendar(){
-  document.getElementById("weeks").innerHTML = groupWeeks().map((w, wi) => {
-    const first = w.days[0].date, last = w.days[w.days.length-1].date, ids = [];
+  const weeks = []; let D = START;
+  while (D <= LAST){ const dt = parseIso(D), mon = addDays(D, -((dt.getDay()+6)%7)); if (!weeks.length || weeks[weeks.length-1].k !== mon) weeks.push({k:mon, days:[]}); weeks[weeks.length-1].days.push(D); D = addDays(D, 1); }
+  document.getElementById("weeks").innerHTML = weeks.map(w => {
+    const first = w.days[0], last = w.days[w.days.length-1]; let tot = 0, dn = 0;
     const body = w.days.map(d => {
-      const parts = dayItems(d).filter(x => x.slot !== "close").map(x => {
-        ids.push(x.id);
+      const items = dayItems(d).filter(x => x.slot !== "close");
+      tot += items.length; dn += items.filter(x => done[x.id]).length;
+      const parts = items.map(x => {
         let lbl;
         if (x.kind === "class") lbl = `<span class="chip s-${x.e.s}">${x.slot==="am"?"AM ":""}${SUBJ[x.e.s]}</span> ${esc(x.e.t)}`;
         else if (x.kind === "test") lbl = `<span class="sp test">Test</span> ${esc(x.t.t.split(":")[0])}`;
-        else lbl = esc(x.t.id.startsWith("qp-") ? "PM Quant practice, 20 min" : x.t.id.startsWith("wk-") ? "Weekly revision, 45 min" : x.t.t);
-        return `<div class="ci"><input type="checkbox" id="k-${x.id}" data-id="${x.id}"${ticks[x.id]?" checked":""}><label for="k-${x.id}">${lbl}</label></div>`;
-      }).join("");
-      return `<div class="cday${d.date===realToday?" is-today":""}"><div class="d"><button type="button" data-goto="${d.date}">${fmtShort(d.date)}</button></div><div class="citems">${parts}</div></div>`;
+        else lbl = esc(x.t.id && x.t.id.startsWith("qp-") ? "PM Quant practice, 20 min" : x.t.id && x.t.id.startsWith("wk-") ? "Weekly revision, 45 min" : x.t.t);
+        return `<div class="ci"><input type="checkbox" id="k-${x.id}" data-id="${x.id}"${done[x.id]?" checked":""}><label for="k-${x.id}">${lbl}</label></div>`;
+      }).join("") || `<span class="small muted">${d < planToday ? "nothing ticked" : ""}</span>`;
+      return `<div class="cday${d===realToday?" is-today":""}"><div class="d"><button type="button" data-goto="${d}">${fmtShort(d)}</button>${d < planToday ? "<span>done</span>" : ""}</div><div class="citems">${parts}</div></div>`;
     }).join("");
-    const done = ids.filter(i => ticks[i]).length;
-    const mock = w.days.flatMap(d => d.tests).map(t => t.t.startsWith("★") ? t.t.split(":")[0].replace("★ ","") : "free test").filter((v,i,a) => a.indexOf(v) === i).join(" + ");
-    const open = (realToday >= first && realToday <= last) || (wi === 0 && realToday < first);
-    return `<details class="week" data-ids="${ids.join(",")}"${open?" open":""}><summary><span class="wk-dates">${fmtShort(first)} – ${fmtShort(last)}</span><span class="wk-title">${esc(phaseOf(first).split(" · ")[1] + (mock ? " · " + mock : ""))}</span><span class="wk-prog${done===ids.length?" full":""}">${done}/${ids.length}</span></summary><div class="wk-body">${body}</div></details>`;
+    const mock = w.days.flatMap(d => PLAN.tests[d] || []).map(t => t.t.startsWith("★") ? t.t.split(":")[0].replace("★ ","") : "free test").filter((v,i,a) => a.indexOf(v) === i).join(" + ");
+    const open = realToday >= first && realToday <= last || (realToday < START && first <= START && START <= last);
+    return `<details class="week" data-k="wk-${first}"${open?" open":""}><summary><span class="wk-dates">${fmtShort(first)} – ${fmtShort(last)}</span><span class="wk-title">${esc(phaseOf(first).split(" · ")[1] + (mock ? " · " + mock : ""))}</span><span class="wk-prog${tot && dn===tot?" full":""}">${dn}/${tot}</span></summary><div class="wk-body">${body}</div></details>`;
   }).join("");
 }
-function refreshWeekProg(){
-  document.querySelectorAll("details.week[data-ids]").forEach(det => { const ids = det.dataset.ids.split(",").filter(Boolean); const d = ids.filter(i => ticks[i]).length; const el = det.querySelector(".wk-prog"); el.textContent = `${d}/${ids.length}`; el.classList.toggle("full", d === ids.length); });
-}
 function renderSkipped(){
-  const list = DATA.skipped.filter(s => s.s !== "H"), hindi = DATA.skipped.length - list.length;
+  const list = PLAN.skipped.filter(s => s.s !== "H"), hindi = PLAN.skipped.length - list.length;
   document.getElementById("skipCount").textContent = `Skipped on purpose: ${list.length + hindi} classes ▾`;
   const groups = {}; list.forEach(s => (groups[s.why] ||= []).push(s.t));
   document.getElementById("skipList").innerHTML = Object.entries(groups).map(([why, ts]) => `<p><b>${esc(why)}</b>: <span class="muted">${ts.length > 10 ? esc(ts.slice(0,10).join(" · ")) + ` … +${ts.length-10} more` : esc(ts.join(" · "))}</span></p>`).join("") + `<p><b>Hindi</b>: <span class="muted">all ${hindi} classes (English chosen)</span></p>`;
 }
 
+// ---------- state changes ----------
 let toastT;
-function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 1800); }
-function setTick(id, on){
-  if (on) ticks[id] = 1; else delete ticks[id];
-  save();
-  document.querySelectorAll(`input[data-id="${CSS.escape(id)}"]`).forEach(b => b.checked = on);
-  document.querySelectorAll(`[data-row="${CSS.escape(id)}"]`).forEach(r => r.classList.toggle("done", on));
-  renderStats(); renderNext(); renderCarry(); renderProgress(); refreshWeekProg();
-  if (on) toast("Done ✓");
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2000); }
+function openKeys(){ return new Set([...document.querySelectorAll("details[data-k][open]")].map(d => d.dataset.k)); }
+function restoreOpen(keys){ document.querySelectorAll("details[data-k]").forEach(d => { if (keys.has(d.dataset.k)) d.open = true; }); }
+function rerender(keepScroll){
+  const y = window.scrollY, keys = openKeys();
+  simulate(); renderToday(); renderProgress(); renderCalendar(); renderDoneTab();
+  if (keepScroll){ restoreOpen(keys); window.scrollTo({top:y}); }
 }
-document.addEventListener("change", ev => { const id = ev.target?.dataset?.id; if (id) setTick(id, ev.target.checked); });
-document.addEventListener("click", ev => {
-  const done = ev.target.closest("[data-done]"); if (done){ setTick(done.dataset.done, true); return; }
-  const go = ev.target.closest("[data-goto]"); if (go){ cur = go.dataset.goto; renderDay(); showTab("today"); document.getElementById("dayTitle").scrollIntoView({block:"start"}); }
+function mark(id, val){ if (val) done[id] = val; else delete done[id]; save(); rerender(true); }
+document.addEventListener("change", ev => {
+  const t = ev.target;
+  if (t.dataset.id){ mark(t.dataset.id, t.checked ? (done[t.dataset.id] || planToday) : null); if (t.checked) toast("Done ✓ · plan updated"); }
+  if (t.dataset.preid){ mark(t.dataset.preid, t.checked ? (done[t.dataset.preid] || "pre") : null); }
 });
-function shift(n){ cur = days[Math.min(days.length-1, Math.max(0, byDate[cur] + n))].date; renderDay(); }
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  if (b.dataset.done){ mark(b.dataset.done, planToday); toast("Done ✓ · next one is up"); }
+  else if (b.dataset.pre){ mark(b.dataset.pre, "pre"); toast("Marked as done before · plan moved up"); }
+  else if (b.dataset.allpre){ PLAN.queues[b.dataset.allpre].forEach(e => { if (!done[e.id]) done[e.id] = "pre"; }); save(); rerender(true); toast(`All ${SUBJ[b.dataset.allpre]} marked done`); }
+  else if (b.dataset.clearpre){ PLAN.queues[b.dataset.clearpre].forEach(e => { if (done[e.id] === "pre") delete done[e.id]; }); save(); rerender(true); }
+  else if (b.dataset.goto){ cur = b.dataset.goto; renderDay(); showTab("today"); document.getElementById("dayTitle").scrollIntoView({block:"start"}); }
+  else if (b.dataset.tabgo){ showTab(b.dataset.tabgo); window.scrollTo({top:0}); }
+  else if (b.dataset.dismiss){ done["_start"] = planToday; save(); document.getElementById("first").innerHTML = ""; }
+});
+function shift(n){ const nd = addDays(cur, n); if (nd >= START && nd <= LAST){ cur = nd; renderDay(); } }
 document.getElementById("prevDay").onclick = () => shift(-1);
 document.getElementById("nextDay").onclick = () => shift(1);
-document.getElementById("todayBtn").onclick = () => { cur = clampDate(realToday); renderDay(); };
+document.getElementById("todayBtn").onclick = () => { cur = planToday; renderDay(); };
 function showTab(name){
   document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
   document.querySelectorAll("main>section").forEach(s => s.hidden = s.id !== "p-" + name);
 }
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => { showTab(b.dataset.tab); window.scrollTo({top:0}); });
 document.getElementById("copyCode").onclick = async () => {
-  const code = btoa(Object.keys(ticks).join(",")); const box = document.getElementById("syncBox"); box.value = code;
+  const code = btoa(JSON.stringify(done)); const box = document.getElementById("syncBox"); box.value = code;
   try { await navigator.clipboard.writeText(code); toast("Code copied"); } catch (e) { box.select(); toast("Select the code and copy it"); }
 };
 document.getElementById("loadCode").onclick = () => {
-  try { const ids = atob(document.getElementById("syncBox").value.trim()).split(",").filter(Boolean); if (!ids.length) throw 0; ids.forEach(i => ticks[i] = 1); save(); renderAll(); toast(`Loaded ${ids.length} ticks`); }
-  catch (e) { toast("That code didn't load. Copy the whole code again."); }
+  try {
+    const raw = atob(document.getElementById("syncBox").value.trim()); let incoming;
+    try { incoming = JSON.parse(raw); } catch (e) { incoming = Object.fromEntries(raw.split(",").filter(Boolean).map(k => [k, "pre"])); }
+    const n = Object.keys(incoming).length; if (!n) throw 0;
+    Object.entries(incoming).forEach(([k, v]) => { if (!done[k]) done[k] = v; }); save(); rerender(); toast(`Loaded ${n} items`);
+  } catch (e) { toast("That code didn't load. Copy the whole code again."); }
 };
-function renderAll(){ renderToday(); renderProgress(); renderCalendar(); renderSkipped(); }
-renderAll();
+rerender(); renderSkipped();
 const startTab = (location.hash || "").replace("#","");
-showTab(["today","progress","calendar","strategy","resources"].includes(startTab) ? startTab : "today");
+showTab(["today","done","progress","calendar","strategy","resources"].includes(startTab) ? startTab : "today");
 </script>
 </body>
 </html>

@@ -97,6 +97,8 @@ def mode_for(c):
         return ("watch", 2.0) if CA_KEEP.search(t) else ("skip", "older than July, or not finance-related (Daily CA Quiz covers general news)")
     return ("skip", "")
 
+STATUS = json.load(open(sys.argv[4])) if len(sys.argv) > 4 else {"resume": []}
+RESUME = set(STATUS.get("resume", []))
 items = []
 for i, c in enumerate(classes):
     mode, extra = mode_for(c)
@@ -107,6 +109,8 @@ for i, c in enumerate(classes):
         pr = PRACTICE.get(c["subj"], 10)
         if c["title"].startswith("How to Crack"): pr = 0
         w = int(round(c["mins"] / extra / 5.0) * 5)
+        if c["title"] in RESUME:
+            w = max(5, int(round(w / 2 / 5.0) * 5)); c["half"] = 1
         c["watchm"], c["prac"] = w, pr
         c["est"] = w + pr
     elif mode == "notes":
@@ -169,6 +173,7 @@ for c in order:
     elif c["mode"] in ("watch", "notes"):
         queues[c["subj"]].append(c)
 
+INITIAL_QUEUES = {k: list(v) for k, v in queues.items()}
 # ---------- calendar ----------
 START, END = dt.date(2026, 10, 8), dt.date(2026, 12, 19)
 LEARN_END = dt.date(2026, 12, 4)
@@ -223,6 +228,7 @@ def entry(c):
     elif c.get("release"): e["rel"] = c["release"]
     if c.get("hasq"): e["q"] = 1
     if c.get("members"): e["mem"] = c["members"]
+    if c.get("half"): e["half"] = 1
     if c["mode"] == "watch": e["sp"] = c["speed"]
     else: e["why"] = c.get("why", "")
     return e
@@ -328,6 +334,22 @@ summary = defaultdict(lambda: {"n": 0, "mins": 0, "watch": 0, "notes": 0, "skip"
 for c in items:
     s = summary[c["subj"]]
     s["n"] += 1; s["mins"] += c["mins"]; s[c["mode"]] += 1; s["planned_min"] += c["est"]
+baseline = {}
+for r in days:
+    for e in r["am"] + r["pm"]:
+        baseline[e["id"]] = r["date"]
+def qentry(c):
+    e = entry(c)
+    if c.get("release"): e["rel"] = c["release"]
+    if c["subj"] == "Q": e["cv"] = cv_topic(c["title"])
+    return e
+plan = {"queues": {k: [qentry(c) for c in v] for k, v in INITIAL_QUEUES.items()},
+        "baseline": baseline,
+        "tests": {k: [{"id": f"test-{k}", "t": t[0], "est": t[1], "url": t[2]} for t in v] for k, v in TESTS.items()},
+        "sectionals": [{"t": a, "url": b} for a, b in PHASE2_SECTIONALS],
+        "skipped": [entry(c) for c in items if c["mode"] == "skip"],
+        "watched_before": sum(1 for c in items if c["mode"] == "done")}
+json.dump(plan, open(OUT.replace(".json", "_plan.json"), "w"), ensure_ascii=False)
 json.dump({"days": days, "skipped": skipped, "summary": summary, "bundles": [{"id": b["id"], "s": b["subj"], "t": b["title"], "why": b["why"]} for b in bundle_items]}, open(OUT, "w"), ensure_ascii=False)
 print("leftover in queues:", left)
 for k, v in summary.items(): print(k, v)

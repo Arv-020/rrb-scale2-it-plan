@@ -1,7 +1,7 @@
 import sys
 t = open("template.html").read()
-d = open("schedule.json").read()
-html = t.replace("__DATA__", d).replace("__UPDATED__", sys.argv[1] if len(sys.argv) > 1 else "7 Oct 2026")
+d = open("schedule_plan.json").read()
+html = t.replace("__PLAN__", d).replace("__UPDATED__", sys.argv[1] if len(sys.argv) > 1 else "7 Oct 2026")
 open("site/index.html", "w").write(html)
 # artifact version: no document wrapper; theme tokens guarded for the viewer's toggle
 a = html[html.index("<title>"):html.index("</head>")] + html[html.index("<body>") + 6:html.index("</body>")]
