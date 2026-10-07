@@ -300,10 +300,20 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
       <li>Not needed to crack this. The only add-on worth considering is more full RRB-pattern mocks for December.</li>
     </ul></div>
   </div>
+  <div class="card">
+    <h3>Update links + progress from Oliveboard</h3>
+    <p class="small">Live classes get their video link only after they air. This button fetches all new links, plus every class Oliveboard shows as watched, in one click. On a PC:</p>
+    <ol class="rules small">
+      <li>Drag this button to your browser's bookmarks bar: <a class="btn sm primary" id="obBookmark" href="#" title="Drag me to the bookmarks bar">⟳ Update RRB plan</a></li>
+      <li>Open your <a href="https://courses.oliveboard.in/exams/?c=2426&i=banking" target="_blank" rel="noopener">IBPS RRB SO IT course page</a> on Oliveboard (logged in) and click that bookmark.</li>
+      <li>This site opens with everything updated. Do it once a week, or whenever a class shows "airs …".</li>
+    </ol>
+    <p class="small muted" id="linkInfo"></p>
+  </div>
   <details class="week"><summary><span class="wk-title" id="skipCount">Skipped classes</span></summary><div style="padding:0 16px 14px;display:grid;gap:6px;font-size:13.5px" id="skipList"></div></details>
   <div class="card">
     <h3>Move your progress to another device</h3>
-    <p class="small muted">Progress is saved in this browser. Copy the code, open the site on your phone or laptop, paste and Load. Loading adds to what's there; it never removes anything.</p>
+    <p class="small muted">Progress (and updated links) are saved in this browser. Copy the code, open the site on your phone or laptop, paste and Load. Loading adds to what's there; it never removes anything.</p>
     <textarea id="syncBox" aria-label="Progress code" placeholder="Paste a progress code here"></textarea>
     <div class="steps"><button type="button" class="plain" id="copyCode">Copy my progress code</button><button type="button" class="plain" id="loadCode">Load pasted code</button></div>
   </div>
@@ -359,7 +369,39 @@ try {
   if (!Object.keys(done).length) { const old = JSON.parse(localStorage.getItem("rrb-it-plan-v2") || "{}"); Object.keys(old).forEach(k => done[k] = "pre"); }
 } catch (e) { done = {}; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+const LKEY = "rrb-it-plan-links";
+let LINKS = {};
+try { LINKS = JSON.parse(localStorage.getItem(LKEY) || "{}") || {}; } catch (e) { LINKS = {}; }
+const saveLinks = () => { try { localStorage.setItem(LKEY, JSON.stringify(LINKS)); } catch (e) {} };
+function applyLinks(){
+  CLASSES.forEach(e => {
+    if (LINKS[e.id] && e.cid !== LINKS[e.id]){ e.cid = LINKS[e.id]; if (e.s !== "CA") e.q = 1; }
+    (e.mem || []).forEach(m => { const k = "m:" + m.t; if (LINKS[k]) m.cid = LINKS[k]; });
+  });
+}
+const SEC = {"Professional Knowledge - IT - MAINS":"PK","Computer Awareness":"C","Banking Awareness":"FA","Financial Awareness":"FA","Financial Awareness Live":"FA","General Economy":"FA","Government Schemes":"GS","Current Affairs 2026":"CA","English":"E","Reasoning":"R","Quant":"Q","Hindi":"H","Start Here":"*"};
+function importOB(rows){
+  const norm = t => String(t).replace(/\s+/g, " ").trim().toLowerCase();
+  const byT = {}, memT = {};
+  CLASSES.forEach(e => { (byT[norm(e.t)] ||= []).push(e); (e.mem || []).forEach(m => (memT[norm(m.t)] ||= []).push({m, s:e.s})); });
+  let added = 0, watched = 0, notInPlan = 0;
+  rows.forEach(([t, cid, sec, comp]) => {
+    const code = SEC[sec], k = norm(t);
+    const fits = s => code === "*" || code === undefined || s === code;
+    const hits = (byT[k] || []).filter(e => fits(e.s)), mhits = (memT[k] || []).filter(x => fits(x.s));
+    if (!hits.length && !mhits.length){ notInPlan++; return; }
+    hits.forEach(e => {
+      if (cid && e.cid !== cid){ if (!e.cid) added++; LINKS[e.id] = cid; }
+      if (comp && !done[e.id]){ done[e.id] = "pre"; watched++; }
+    });
+    mhits.forEach(({m}) => { if (cid && m.cid !== cid){ if (!m.cid) added++; LINKS["m:" + m.t] = cid; } });
+  });
+  LINKS._updated = realToday;
+  saveLinks(); save(); applyLinks();
+  return {added, watched, notInPlan};
+}
 
+applyLinks();
 // ---------- the scheduler (same rules as the original plan, run from today on what's left) ----------
 let SIM = {}, FINISH = null, UNFIT = 0;
 function simulate(){
@@ -520,15 +562,17 @@ function itemCard(x, start, uid){
 // ---------- Today ----------
 let cur = planToday;
 function renderStats(){
-  const cDone = CLASSES.filter(e => done[e.id]).length, pct = Math.round(100*cDone/CLASSES.length);
+  const cDone = CLASSES.filter(e => done[e.id] && done[e.id] !== "skip").length, skipped = CLASSES.filter(e => done[e.id] === "skip").length;
+  const pct = Math.round(100*cDone/(CLASSES.length - skipped));
   document.getElementById("ring").style.setProperty("--p", pct);
   document.getElementById("ringTxt").textContent = pct + "%";
-  document.getElementById("sClasses").textContent = `${cDone} / ${CLASSES.length}`;
+  document.getElementById("sClasses").textContent = `${cDone} / ${CLASSES.length - skipped}`;
   const ti = dayItems(planToday).filter(x => x.slot !== "close");
   document.getElementById("sToday").textContent = `${ti.filter(x => done[x.id]).length} / ${ti.length}`;
   document.getElementById("sTests").textContent = `${ALL_TESTS.filter(t => done[t.id]).length} / ${ALL_TESTS.length}`;
   const box = document.getElementById("sFinishBox");
-  if (!FINISH && UNFIT === 0){ document.getElementById("sFinish").textContent = "All done"; document.getElementById("sFinishSub").textContent = "every class covered"; box.className = "stat good"; }
+  if (realToday >= "2026-12-16"){ document.getElementById("sFinish").textContent = realToday >= "2026-12-20" ? "Done" : "Revise"; document.getElementById("sFinishSub").textContent = realToday >= "2026-12-20" ? "exam written" : "no new classes now"; box.className = "stat"; }
+  else if (!FINISH && UNFIT === 0){ document.getElementById("sFinish").textContent = "All done"; document.getElementById("sFinishSub").textContent = "every class covered"; box.className = "stat good"; }
   else {
     const late = FINISH ? daysBetween(BASE_FINISH, FINISH) : 99;
     document.getElementById("sFinish").textContent = UNFIT ? `${UNFIT} won't fit` : fmtDM(FINISH);
@@ -537,15 +581,55 @@ function renderStats(){
   }
   const n = Math.max(0, daysBetween(realToday, "2026-12-20"));
   document.getElementById("sDays").textContent = n;
-  document.getElementById("countdown").textContent = n > 0 ? `${n} days · exam 20 Dec` : "Exam day";
+  document.getElementById("countdown").textContent = n > 1 ? `${n} days · exam 20 Dec` : (n === 1 ? "Exam tomorrow" : (realToday === "2026-12-20" ? "Exam day" : "Exam done"));
+}
+function catchUpCandidates(){
+  const undone = e => !done[e.id];
+  const q = PLAN.queues;
+  const tiers = [
+    [...(q.CA || [])].reverse().filter(undone),
+    (q.R || []).filter(e => /Mains/.test(e.t) && undone(e)).reverse(),
+    (q.E || []).filter(e => e.m === "watch" && !/Reading Comprehension|Error Spotting|Cloze/.test(e.t) && undone(e)).reverse(),
+    (q.C || []).filter(undone).reverse(),
+    (q.Q || []).filter(e => /( 2| 3|Mix)/.test(e.t) && !/Calculation|Number Series/.test(e.t) && undone(e)).reverse(),
+    (q.E || []).filter(undone).reverse(),
+    (q.R || []).filter(e => /Critical|Coded|Alphanumeric/.test(e.t) && undone(e)).reverse(),
+  ];
+  return tiers.flat();
+}
+function makeItFit(){
+  const cands = catchUpCandidates(), picked = [];
+  for (const e of cands){
+    if (!UNFIT && FINISH && FINISH <= PRACTICE_END) break;
+    done[e.id] = "skip"; picked.push(e); simulate();
+  }
+  save(); rerender(true);
+  toast(picked.length ? `Skipped ${picked.length} lower-value classes. Undo anytime.` : "Nothing left to skip safely.");
 }
 function firstRun(){
   const el = document.getElementById("first");
+  const skippedN = CLASSES.filter(e => done[e.id] === "skip").length;
+  if (realToday >= "2026-12-16"){ el.innerHTML = ""; return; }
+  if ((UNFIT || (FINISH && FINISH > PRACTICE_END)) && !catchUpCandidates().length){
+    el.innerHTML = `<div class="warnbox"><h3>${UNFIT ? `${UNFIT} core classes still don't fit` : `Classes run until ${fmtDM(FINISH)}`}</h3><p class="small">Everything low-value is already skipped. What's left is PK-IT, Banking/FA, Reasoning and core Quant. Add weekend hours, or mark topics you already know in "Already done". Don't drop the mocks.</p>${skippedN ? `<div class="steps"><button type="button" class="btn sm" data-unskip="1">Undo skips (${skippedN})</button></div>` : ""}</div>`;
+    return;
+  }
+  if (UNFIT || (FINISH && FINISH > PRACTICE_END)){
+    el.innerHTML = `<div class="warnbox"><h3>${UNFIT ? `${UNFIT} classes won't fit before the exam` : `Classes now run until ${fmtDM(FINISH)}, leaving almost no time for mocks`}</h3><p class="small">"Make it fit" skips the lowest-value classes first: Current Affairs videos (the Daily CA Quiz stays), then Mains-puzzle repeats, English, Computer and second-part Quant classes. PK-IT and Banking/FA are never skipped.</p><div class="steps"><button type="button" class="btn primary sm" data-fit="1">Make it fit</button>${skippedN ? `<button type="button" class="btn sm" data-unskip="1">Undo (${skippedN} skipped)</button>` : ""}</div></div>`;
+    return;
+  }
+  if (skippedN){ el.innerHTML = `<div class="callout"><p class="small">${skippedN} lower-value classes are skipped to fit the plan. <button type="button" class="btn link" data-unskip="1">Undo</button></p></div>`; return; }
   if (Object.keys(done).length){ el.innerHTML = ""; return; }
   el.innerHTML = `<div class="callout"><h3>Already studied some of this?</h3><p>Mark what you've covered in <b>Already done</b>, and the plan starts from your next class instead of from zero.</p><div class="steps"><button type="button" class="btn primary sm" data-tabgo="done">Mark what I've done</button><button type="button" class="btn sm" data-dismiss="1">Starting fresh</button></div></div>`;
 }
 function renderNext(){
   const el = document.getElementById("next");
+  if (realToday >= "2026-12-20"){
+    el.innerHTML = realToday === "2026-12-20"
+      ? `<div class="next"><span class="eyebrow">Exam day · Sunday 20 December</span><h2>All the best. You've prepared for this.</h2><p class="sub">Admit card + photo ID · reach early · eat light. Section order you practised; FA is 15 minutes, so answer what you know and move on. −¼ per wrong answer: skip a question unless you can rule out 2 options.</p></div>`
+      : `<div class="next"><span class="eyebrow">Exam done</span><h2>The exam is over.</h2><p class="sub">Note down what felt hard while it's fresh, then rest. Interview prep comes next if you clear the cut-off.</p></div>`;
+    return;
+  }
   const items = dayItems(planToday).filter(x => x.slot !== "close");
   let pick = items.find(x => !done[x.id]), ahead = false;
   if (!pick){ for (let D = addDays(planToday, 1); D <= LAST && !pick; D = addDays(D, 1)) pick = dayItems(D).find(x => x.kind === "class" && !done[x.id]); ahead = !!pick; }
@@ -558,7 +642,7 @@ function renderNext(){
 }
 function renderMissed(){
   const el = document.getElementById("missed");
-  const missed = ALL_TESTS.filter(t => t.date < realToday && !done[t.id]);
+  const missed = realToday <= "2026-12-15" ? ALL_TESTS.filter(t => t.date < realToday && !done[t.id]) : [];
   el.innerHTML = missed.length ? `<div class="warnbox"><h3>Missed test${missed.length>1?"s":""}</h3>${missed.map(t => itemCard({kind:"test", slot:"test", t, id:t.id}, null, "m")).join("")}<p class="small muted">Do it this weekend, before the next one.</p></div>` : "";
 }
 function renderDay(){
@@ -577,7 +661,7 @@ function renderDay(){
   document.getElementById("dayBody").innerHTML = h;
 }
 function barsHtml(){
-  const by = {}; CLASSES.forEach(e => { (by[e.s] ||= {n:0,d:0}); by[e.s].n++; if (done[e.id]) by[e.s].d++; });
+  const by = {}; CLASSES.forEach(e => { if (done[e.id] === "skip") return; (by[e.s] ||= {n:0,d:0}); by[e.s].n++; if (done[e.id]) by[e.s].d++; });
   return SUBJ_ORDER.filter(s => by[s]).map(s => { const v = by[s], p = Math.round(100*v.d/v.n); return `<div class="bar"><span class="small">${SUBJ[s]}</span><div class="track" role="progressbar" aria-label="${SUBJ[s]}" aria-valuenow="${p}" aria-valuemin="0" aria-valuemax="100"><div class="fill" style="width:${p}%"></div></div><span class="mono">${v.d}/${v.n}</span></div>`; }).join("");
 }
 function testsHtml(list){ return list.map(t => `<div class="trow"><span class="mono small">${fmtShort(t.date)}</span><a href="${t.url}" target="_blank" rel="noopener">${esc(t.t.split(":")[0])}</a><span class="st ${done[t.id]?"ok":"todo"}">${done[t.id]?"✓ done":"to do"}</span></div>`).join(""); }
@@ -594,7 +678,7 @@ function renderDoneTab(){
   document.getElementById("obNote").textContent = `${PLAN.watched_before} classes fully watched are already left out of this plan. ${half.length} half-watched ones stay in with half the watch time: ${half.join(", ")}.`;
   document.getElementById("doneLists").innerHTML = SUBJ_ORDER.filter(s => PLAN.queues[s]).map(s => {
     const list = PLAN.queues[s], n = list.filter(e => done[e.id]).length;
-    return `<details class="week" data-k="sub-${s}"><summary><span class="wk-title">${SUBJ[s]}</span><span class="wk-prog${n===list.length?" full":""}">${n}/${list.length}</span></summary><div class="wk-body" style="gap:6px"><div class="steps" style="padding:4px 0 8px"><button type="button" class="btn sm" data-allpre="${s}">Mark all</button><button type="button" class="btn sm" data-clearpre="${s}">Clear "done before"</button></div>${list.map(e => `<div class="ci"><input type="checkbox" id="a-${e.id}" data-preid="${e.id}"${done[e.id]?" checked":""}><label for="a-${e.id}">${esc(e.t)}${done[e.id] && done[e.id] !== "pre" ? ` <span class="small muted">· done ${fmtDM(done[e.id])}</span>` : ""}</label></div>`).join("")}</div></details>`;
+    return `<details class="week" data-k="sub-${s}"><summary><span class="wk-title">${SUBJ[s]}</span><span class="wk-prog${n===list.length?" full":""}">${n}/${list.length}</span></summary><div class="wk-body" style="gap:6px"><div class="steps" style="padding:4px 0 8px"><button type="button" class="btn sm" data-allpre="${s}">Mark all</button><button type="button" class="btn sm" data-clearpre="${s}">Clear "done before"</button></div>${list.map(e => `<div class="ci"><input type="checkbox" id="a-${e.id}" data-preid="${e.id}"${done[e.id]?" checked":""}><label for="a-${e.id}">${esc(e.t)}${done[e.id] === "skip" ? ` <span class="small muted">· skipped to fit</span>` : (done[e.id] && done[e.id] !== "pre" ? ` <span class="small muted">· done ${fmtDM(done[e.id])}</span>` : "")}</label></div>`).join("")}</div></details>`;
   }).join("");
 }
 
@@ -659,6 +743,8 @@ document.addEventListener("click", ev => {
   else if (b.dataset.clearpre){ PLAN.queues[b.dataset.clearpre].forEach(e => { if (done[e.id] === "pre") delete done[e.id]; }); save(); rerender(true); }
   else if (b.dataset.goto){ cur = b.dataset.goto; renderDay(); showTab("today"); document.getElementById("dayTitle").scrollIntoView({block:"start"}); }
   else if (b.dataset.tabgo){ showTab(b.dataset.tabgo); window.scrollTo({top:0}); }
+  else if (b.dataset.fit){ makeItFit(); }
+  else if (b.dataset.unskip){ Object.keys(done).forEach(k => { if (done[k] === "skip") delete done[k]; }); save(); rerender(true); toast("Skipped classes are back in the plan"); }
   else if (b.dataset.dismiss){ done["_start"] = planToday; save(); document.getElementById("first").innerHTML = ""; }
 });
 function shift(n){ const nd = addDays(cur, n); if (nd >= START && nd <= LAST){ cur = nd; renderDay(); } }
@@ -670,19 +756,35 @@ function showTab(name){
   document.querySelectorAll("main>section").forEach(s => s.hidden = s.id !== "p-" + name);
 }
 document.querySelectorAll(".tab").forEach(b => b.onclick = () => { showTab(b.dataset.tab); window.scrollTo({top:0}); });
+const SITE = "https://arv-020.github.io/rrb-scale2-it-plan/";
+const BM = `(()=>{const h=[...document.querySelectorAll('h2')].find(x=>x.textContent.trim()==='All');if(!h||!/oliveboard/.test(location.host)){alert('Open your IBPS RRB SO IT course page on Oliveboard first, then click this bookmark again.');return}let s=h.parentElement;while(s&&s.querySelectorAll('h3').length<3)s=s.parentElement;const o=[];s.querySelectorAll('.grid-card-wrapper').forEach(w=>{const t=w.querySelector('h3');const m=w.outerHTML.match(/classid=(-?\\d+)/);const c=w.querySelector('.lsc-meta-section .lsc-txt');if(t&&m)o.push([t.textContent.trim(),m[1],c?c.getAttribute('title'):'',w.className.indexOf('completed_card')>-1?1:0])});window.open('${SITE}#ob='+encodeURIComponent(JSON.stringify(o)),'_blank')})()`;
+document.getElementById("obBookmark").setAttribute("href", "javascript:" + BM);
+document.getElementById("obBookmark").addEventListener("click", ev => { if (!/oliveboard/.test(location.host)){ ev.preventDefault(); toast("Drag this button to your bookmarks bar, then click it on the Oliveboard course page"); } });
+function linkInfo(){
+  const missing = CLASSES.filter(e => !e.cid && !e.mem && !done[e.id]).length;
+  document.getElementById("linkInfo").textContent = (LINKS._updated ? `Last updated from Oliveboard: ${fmtDay(LINKS._updated)}. ` : "Not updated from Oliveboard yet. ") + `${missing} classes in your plan are still waiting for a video link (they haven't aired yet).`;
+}
 document.getElementById("copyCode").onclick = async () => {
-  const code = btoa(JSON.stringify(done)); const box = document.getElementById("syncBox"); box.value = code;
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify({d: done, l: LINKS})))); const box = document.getElementById("syncBox"); box.value = code;
   try { await navigator.clipboard.writeText(code); toast("Code copied"); } catch (e) { box.select(); toast("Select the code and copy it"); }
 };
 document.getElementById("loadCode").onclick = () => {
   try {
-    const raw = atob(document.getElementById("syncBox").value.trim()); let incoming;
-    try { incoming = JSON.parse(raw); } catch (e) { incoming = Object.fromEntries(raw.split(",").filter(Boolean).map(k => [k, "pre"])); }
-    const n = Object.keys(incoming).length; if (!n) throw 0;
-    Object.entries(incoming).forEach(([k, v]) => { if (!done[k]) done[k] = v; }); save(); rerender(); toast(`Loaded ${n} items`);
+    const raw = decodeURIComponent(escape(atob(document.getElementById("syncBox").value.trim()))); let incoming, links = {};
+    try { incoming = JSON.parse(raw); if (incoming && incoming.d){ links = incoming.l || {}; incoming = incoming.d; } } catch (e) { incoming = Object.fromEntries(raw.split(",").filter(Boolean).map(k => [k, "pre"])); }
+    const n = Object.keys(incoming).length; if (!n && !Object.keys(links).length) throw 0;
+    Object.entries(incoming).forEach(([k, v]) => { if (!done[k]) done[k] = v; });
+    Object.entries(links).forEach(([k, v]) => { if (!LINKS[k] || k === "_updated") LINKS[k] = v; });
+    save(); saveLinks(); applyLinks(); rerender(); linkInfo(); toast(`Loaded ${n} items`);
   } catch (e) { toast("That code didn't load. Copy the whole code again."); }
 };
-rerender(); renderSkipped();
+let obResult = null;
+if ((location.hash || "").startsWith("#ob=")){
+  try { obResult = importOB(JSON.parse(decodeURIComponent(location.hash.slice(4)))); } catch (e) { obResult = {error: true}; }
+  history.replaceState(null, "", location.pathname);
+}
+rerender(); renderSkipped(); linkInfo();
+if (obResult) toast(obResult.error ? "Couldn't read the Oliveboard data. Try the bookmark again on the course page." : `Updated from Oliveboard: ${obResult.added} new video links, ${obResult.watched} watched classes marked done`);
 const startTab = (location.hash || "").replace("#","");
 showTab(["today","done","progress","calendar","strategy","resources"].includes(startTab) ? startTab : "today");
 </script>
