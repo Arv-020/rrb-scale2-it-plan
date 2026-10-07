@@ -178,27 +178,30 @@ INITIAL_QUEUES = {k: list(v) for k, v in queues.items()}
 START, END = dt.date(2026, 10, 8), dt.date(2026, 12, 19)
 LEARN_END = dt.date(2026, 12, 4)
 FREE = "https://u1.oliveboard.in/tests/?c={}&i=banking"
+GO = lambda c, n: f"https://u1.oliveboard.in/exams/tests/part.php?c={c}&testid={n}"
+TEST_START = {"ibpsrrbscp": 1, "ibpsrrbasp": 1, "rrbscale2offen": 21, "sbipopre19": 1, "ibpsprelim": 1, "licjem": 1, "sbiclerkpre2020": 1,
+              "ibpsclerkprelim": 1, "rbiassistantp": 1, "nicl": 1, "uiicao": 1, "niacl": 1, "licap": 1}
 TESTS = {
- "2026-10-11": [("IBPS RRB Officer Prelims 1 (free): Reasoning + Quant, 45 min, then 30 min review", 75, FREE.format("ibpsrrbscp"))],
- "2026-10-18": [("IBPS RRB Assistant Prelims 1 (free): Reasoning + Quant, 45 min, then 30 min review", 75, FREE.format("ibpsrrbasp"))],
- "2026-10-25": [("RRB Scale II General Officer Mock 1 (free): 200 Qs, 2 hours, same non-IT sections as yours, then 1h review", 180, FREE.format("rrbscale2offen"))],
- "2026-11-01": [("SBI PO Prelims 1 (free): English + Quant + Reasoning, 1 hour, then 40 min review", 100, FREE.format("sbipopre19"))],
- "2026-11-08": [("★ Course Mock 1: RRB Scale2 Officer IT 1 (150 min), then 1h review", 210, FREE.format("rrbscale2offit"))],
- "2026-11-14": [("IBPS PO Prelims 1 (free): 1 hour, then 40 min review", 100, FREE.format("ibpsprelim"))],
- "2026-11-15": [("LIC AAO IT Mains 1 (free): IT professional knowledge, 2 hours, then 30 min review", 150, FREE.format("licjem"))],
- "2026-11-21": [("SBI Clerk Prelims 1 (free): 1 hour, then 40 min review", 100, FREE.format("sbiclerkpre2020"))],
- "2026-11-22": [("★ Course Mock 2: RRB Scale2 Officer IT 2, then 1h review", 210, FREE.format("rrbscale2offit"))],
- "2026-11-29": [("★ Course Mock 3: RRB Scale2 Officer IT 3, then 1h review", 210, FREE.format("rrbscale2offit"))],
- "2026-12-06": [("★ Course Mock 4: RRB Scale2 Officer IT 4, then 1h review", 210, FREE.format("rrbscale2offit"))],
- "2026-12-13": [("★ Course Mock 5: RRB Scale2 Officer IT 5, then 1h review", 210, FREE.format("rrbscale2offit"))],
+ "2026-10-11": [("IBPS RRB Officer Prelims 1 (free): Reasoning + Quant, 45 min, then 30 min review", 75, (FREE.format("ibpsrrbscp"), GO("ibpsrrbscp", TEST_START["ibpsrrbscp"])))],
+ "2026-10-18": [("IBPS RRB Assistant Prelims 1 (free): Reasoning + Quant, 45 min, then 30 min review", 75, (FREE.format("ibpsrrbasp"), GO("ibpsrrbasp", TEST_START["ibpsrrbasp"])))],
+ "2026-10-25": [("RRB Scale II General Officer Mock 1 (free): 200 Qs, 2 hours, same non-IT sections as yours, then 1h review", 180, (FREE.format("rrbscale2offen"), GO("rrbscale2offen", TEST_START["rrbscale2offen"])))],
+ "2026-11-01": [("SBI PO Prelims 1 (free): English + Quant + Reasoning, 1 hour, then 40 min review", 100, (FREE.format("sbipopre19"), GO("sbipopre19", TEST_START["sbipopre19"])))],
+ "2026-11-08": [("★ Course Mock 1: RRB Scale2 Officer IT 1 (150 min), then 1h review", 210, (FREE.format("rrbscale2offit"), GO("rrbscale2offit", 1)))],
+ "2026-11-14": [("IBPS PO Prelims 1 (free): 1 hour, then 40 min review", 100, (FREE.format("ibpsprelim"), GO("ibpsprelim", TEST_START["ibpsprelim"])))],
+ "2026-11-15": [("LIC AAO IT Mains 1 (free): IT professional knowledge, 2 hours, then 30 min review", 150, (FREE.format("licjem"), GO("licjem", TEST_START["licjem"])))],
+ "2026-11-21": [("SBI Clerk Prelims 1 (free): 1 hour, then 40 min review", 100, (FREE.format("sbiclerkpre2020"), GO("sbiclerkpre2020", TEST_START["sbiclerkpre2020"])))],
+ "2026-11-22": [("★ Course Mock 2: RRB Scale2 Officer IT 2, then 1h review", 210, (FREE.format("rrbscale2offit"), GO("rrbscale2offit", 2)))],
+ "2026-11-29": [("★ Course Mock 3: RRB Scale2 Officer IT 3, then 1h review", 210, (FREE.format("rrbscale2offit"), GO("rrbscale2offit", 3)))],
+ "2026-12-06": [("★ Course Mock 4: RRB Scale2 Officer IT 4, then 1h review", 210, (FREE.format("rrbscale2offit"), GO("rrbscale2offit", 4)))],
+ "2026-12-13": [("★ Course Mock 5: RRB Scale2 Officer IT 5, then 1h review", 210, (FREE.format("rrbscale2offit"), GO("rrbscale2offit", 5)))],
 }
 PHASE2_SECTIONALS = [  # free one-hour prelims tests, used as 30-min single-section drills
- ("IBPS Clerk Prelims 1 (free): attempt Reasoning only, 30-min timer", FREE.format("ibpsclerkprelim")),
- ("RBI Assistant Prelims 1 (free): attempt Quant only, 30-min timer", FREE.format("rbiassistantp")),
- ("NICL AO Prelims 1 (free): attempt English only, 30-min timer", FREE.format("nicl")),
- ("UIIC AO Prelims 1 (free): attempt Reasoning only, 30-min timer", FREE.format("uiicao")),
- ("NIACL AO Prelims 1 (free): attempt Quant only, 30-min timer", FREE.format("niacl")),
- ("LIC AAO Prelims 1 (free): attempt Reasoning + Quant, 40-min timer", FREE.format("licap")),
+ ("IBPS Clerk Prelims 1 (free): attempt Reasoning only, 30-min timer", (FREE.format("ibpsclerkprelim"), GO("ibpsclerkprelim", TEST_START["ibpsclerkprelim"]))),
+ ("RBI Assistant Prelims 1 (free): attempt Quant only, 30-min timer", (FREE.format("rbiassistantp"), GO("rbiassistantp", TEST_START["rbiassistantp"]))),
+ ("NICL AO Prelims 1 (free): attempt English only, 30-min timer", (FREE.format("nicl"), GO("nicl", TEST_START["nicl"]))),
+ ("UIIC AO Prelims 1 (free): attempt Reasoning only, 30-min timer", (FREE.format("uiicao"), GO("uiicao", TEST_START["uiicao"]))),
+ ("NIACL AO Prelims 1 (free): attempt Quant only, 30-min timer", (FREE.format("niacl"), GO("niacl", TEST_START["niacl"]))),
+ ("LIC AAO Prelims 1 (free): attempt Reasoning + Quant, 40-min timer", (FREE.format("licap"), GO("licap", TEST_START["licap"]))),
 ]
 
 ROT = {0: ["R", "PK", "FA"], 1: ["R", "FA", "E"], 2: ["R", "PK", "FA"], 3: ["R", "PK", "C", "E"],
@@ -345,8 +348,8 @@ def qentry(c):
     return e
 plan = {"queues": {k: [qentry(c) for c in v] for k, v in INITIAL_QUEUES.items()},
         "baseline": baseline,
-        "tests": {k: [{"id": f"test-{k}", "t": t[0], "est": t[1], "url": t[2]} for t in v] for k, v in TESTS.items()},
-        "sectionals": [{"t": a, "url": b} for a, b in PHASE2_SECTIONALS],
+        "tests": {k: [{"id": f"test-{k}", "t": t[0], "est": t[1], "list": t[2][0], "url": t[2][1]} for t in v] for k, v in TESTS.items()},
+        "sectionals": [{"t": a, "list": b[0], "url": b[1]} for a, b in PHASE2_SECTIONALS],
         "skipped": [entry(c) for c in items if c["mode"] == "skip"],
         "watched_before": sum(1 for c in items if c["mode"] == "done")}
 json.dump(plan, open(OUT.replace(".json", "_plan.json"), "w"), ensure_ascii=False)
