@@ -148,6 +148,15 @@ details.week>summary::-webkit-details-marker{display:none}
 .ci input{margin-top:3px;width:17px;height:17px;accent-color:var(--accent);flex:none}
 .ci label{cursor:pointer;min-width:0}
 .ci input:checked+label{text-decoration:line-through;color:var(--muted)}
+.libbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:104px;z-index:2;background:var(--paper);padding:6px 0}
+.libbar input{flex:1;min-width:220px;font:15px var(--body);padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+.lrow:first-child{border-top:0}
+.lrow .lt{font-weight:500;font-size:14.5px}
+.lrow .lmeta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--muted)}
+.lrow .steps{justify-content:flex-end}
+.st-done{color:var(--ok);font:600 12px var(--mono)} .st-plan{color:var(--accent);font:600 12px var(--mono)} .st-skip{color:var(--muted);font:500 12px var(--mono)} .st-bundle{color:var(--notes);font:500 12px var(--mono)}
+@media (max-width:620px){.lrow{grid-template-columns:1fr}.lrow .steps{justify-content:flex-start}.libbar{top:96px}}
 .subjgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
 .subj-h{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
 
@@ -162,7 +171,16 @@ tr:last-child td{border-bottom:0}
 .free{color:var(--ok);font:600 11px var(--mono)} .lock{color:var(--warn);font:600 11px var(--mono)}
 textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;z-index:9}
-@media (max-width:620px){.stat{padding:10px}.stat b{font-size:20px}.ring{width:48px;height:48px}.ring i{width:36px;height:36px}.cday{grid-template-columns:1fr}.trow{grid-template-columns:1fr auto}.trow .mono{grid-column:1/-1}.subjgrid{grid-template-columns:1fr}.bar{grid-template-columns:96px minmax(0,1fr) 52px}}
+@media (max-width:620px){.stat{padding:10px}.stat b{font-size:20px}.ring{width:48px;height:48px}.ring i{width:36px;height:36px}.cday{grid-template-columns:1fr}.trow{grid-template-columns:1fr auto}.trow .mono{grid-column:1/-1}.libbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;position:sticky;top:104px;z-index:2;background:var(--paper);padding:6px 0}
+.libbar input{flex:1;min-width:220px;font:15px var(--body);padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink)}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+.lrow:first-child{border-top:0}
+.lrow .lt{font-weight:500;font-size:14.5px}
+.lrow .lmeta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--muted)}
+.lrow .steps{justify-content:flex-end}
+.st-done{color:var(--ok);font:600 12px var(--mono)} .st-plan{color:var(--accent);font:600 12px var(--mono)} .st-skip{color:var(--muted);font:500 12px var(--mono)} .st-bundle{color:var(--notes);font:500 12px var(--mono)}
+@media (max-width:620px){.lrow{grid-template-columns:1fr}.lrow .steps{justify-content:flex-start}.libbar{top:96px}}
+.subjgrid{grid-template-columns:1fr}.bar{grid-template-columns:96px minmax(0,1fr) 52px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -173,6 +191,7 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" data-tab="today" aria-selected="true">Today</button>
       <button class="tab" role="tab" data-tab="done" aria-selected="false">Already done</button>
+      <button class="tab" role="tab" data-tab="library" aria-selected="false">All videos</button>
       <button class="tab" role="tab" data-tab="progress" aria-selected="false">Progress</button>
       <button class="tab" role="tab" data-tab="calendar" aria-selected="false">Calendar</button>
       <button class="tab" role="tab" data-tab="strategy" aria-selected="false">Strategy</button>
@@ -218,6 +237,13 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
   <p>Tick everything you've already covered (from Oliveboard, YouTube, books, anywhere). Those classes leave the plan, and everything after moves up, so you start from your next class, not from zero. To skip a whole subject or a run of classes, use "Mark all".</p>
   <div class="callout"><p class="small"><b>From your Oliveboard record (7 Oct):</b> <span id="obNote"></span></p></div>
   <div class="subjgrid" id="doneLists"></div>
+</section>
+
+<section class="panel" id="p-library" role="tabpanel" hidden>
+  <h2>All videos</h2>
+  <p>Every class in your Oliveboard course, all 449, with direct links and where each one sits in your plan. Skipped classes can be added back with one tap; the plan re-arranges itself.</p>
+  <div class="libbar"><input type="search" id="libSearch" placeholder="Search a class, e.g. calculation tricks" aria-label="Search classes"><span class="small muted" id="libCount"></span></div>
+  <div id="libList" style="display:grid;gap:10px"></div>
 </section>
 
 <section class="panel" id="p-progress" role="tabpanel" hidden>
@@ -278,7 +304,7 @@ textarea{width:100%;min-height:70px;font:12px var(--mono);background:var(--card)
     <div class="card"><h3>The course</h3><ul>
       <li>449 classes, ~566h without Hindi; live classes run until 27 Nov.</li>
       <li>Each class page has the video plus Summary, Detailed Notes, Quiz, Flash Cards and Class PDF.</li>
-      <li><b>209 to watch</b> (~143h at the speeds shown) + <b>~70h of practice</b>. <b>67 via Notes</b>. <b>161 skipped</b> (23 Hindi, 126 old or non-finance CA, 12 Computer repeats of PK).</li>
+      <li>Every one of the 449 classes is in <b>All videos</b>: 219 planned to watch, 57 covered through Notes bundles, 12 you've already watched, and 161 skipped on purpose (23 Hindi, 126 older or non-finance CA, 12 Computer repeats of PK). Any skipped class can be added back.</li>
       <li><a href="https://courses.oliveboard.in/exams/?c=2426&i=banking" target="_blank" rel="noopener">Open the course page ↗</a></li>
     </ul></div>
     <div class="card"><h3>Full mocks for this exam <span class="free">INCLUDED</span></h3><ul>
@@ -330,12 +356,12 @@ const VID = id => `https://courses.oliveboard.in/edge/videosplus/index.php?c=242
 const MAT = (id, tab) => `https://courses.oliveboard.in/edge/videosplus/material.php?c=2426&session=0&i=banking&classid=${id}&dtab=${tab}`;
 const CV = "https://u1.oliveboard.in/tests/?c=videolessons&i=banking";
 const CAQ = "https://discuss.oliveboard.in/caquiz2/?i=banking";
-const SUBJ = {Q:"Quant",R:"Reasoning",PK:"PK-IT",FA:"Banking & FA",GS:"Govt Schemes",CA:"Current Affairs",E:"English",C:"Computer"};
-const SUBJ_ORDER = ["FA","GS","CA","PK","R","Q","C","E"];
+const SUBJ = {Q:"Quant",R:"Reasoning",PK:"PK-IT",FA:"Banking & FA",GS:"Govt Schemes",CA:"Current Affairs",E:"English",C:"Computer",H:"Hindi"};
+const SUBJ_ORDER = ["FA","GS","CA","PK","R","Q","C","E","H"];
 const PRACTICE = {Q:"Quiz, untimed", R:"Quiz + Imp Qs, then one extra set from Concept Videos", PK:"Quiz + Imp Qs (your PK question bank)", FA:"Quiz, then go through the Flash Cards", E:"Quiz + Imp Qs", C:"Quiz", CA:"Quiz"};
 // rotation by JS weekday (0 = Sunday) — same as the original plan
 const ROT = {1:["R","PK","FA"],2:["R","FA","E"],3:["R","PK","FA"],4:["R","PK","C","E"],5:["R","FA","CA"],6:["R","PK","GS","FA","E","CA","C"],0:["FA","GS","R","PK","CA","E"]};
-const FALLBACK = ["FA","PK","R","E","C","CA","GS"];
+const FALLBACK = ["FA","PK","R","E","C","CA","GS","H"];
 const PK_UNITS = ["Networks + Security","DBMS + SQL","OS + Computer Organisation","Data Structures + Algorithms","OOPs + C/Java/Python","SDLC + Web + Emerging Tech + Linux"];
 const TAPER = {"2026-12-14":"Re-attempt the wrong questions from Mocks 1 and 2","2026-12-15":"Re-attempt the wrong questions from Mocks 3 and 4","2026-12-16":"Re-attempt the wrong questions from Mock 5 + the RRB Scale II General free mock","2026-12-17":"Banking + Govt Scheme Cards, full pass (FA is 40 marks in 15 min)","2026-12-18":"PK Notes skim (one page per unit) + Quant formula sheet + CA round-ups","2026-12-19":"Light day: Cards only for 1 hour. Admit card, photo ID, centre route. Sleep by 10:30."};
 const KEY = "rrb-it-plan-v3";
@@ -357,8 +383,25 @@ const link = (cls, href, text) => `<a class="${cls}" href="${href}" target="_bla
 
 const realToday = isoLocal(new Date());
 const planToday = realToday < START ? START : (realToday > LAST ? LAST : realToday);
-const CLASSES = Object.values(PLAN.queues).flat();
-const BY_ID = Object.fromEntries(CLASSES.map(e => [e.id, e]));
+const LIB = PLAN.lib;
+const LIB_BY_ID = Object.fromEntries(LIB.map(e => [e.id, e]));
+const AKEY = "rrb-it-plan-added", SKEY = "rrb-it-plan-seeded";
+const loadJ = k => { try { return JSON.parse(localStorage.getItem(k) || "{}") || {}; } catch (e) { return {}; } };
+const saveJ = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+let ADDED = loadJ(AKEY);
+const idxOf = x => x.t === "How to Crack Quant with this course" ? -1 : (LIB_BY_ID[x.id.startsWith("b") ? x.id.slice(1) : x.id]?.idx ?? 9999);
+function insertAdded(id){
+  const l = LIB_BY_ID[id]; if (!l || l.st !== "skip") return;
+  const q = (PLAN.queues[l.s] ||= []); if (q.some(e => e.id === id)) return;
+  const e = {id:l.id, s:l.s, t:l.t, m:"watch", est:l.est, len:l.len, w:l.w, pr:l.pr, sp:l.sp, added:1};
+  if (l.cid) e.cid = l.cid; if (l.q) e.q = 1; if (l.rel) e.rel = l.rel;
+  const i = q.findIndex(x => idxOf(x) > l.idx); q.splice(i < 0 ? q.length : i, 0, e);
+}
+function removeAdded(id){ const l = LIB_BY_ID[id]; if (!l) return; const q = PLAN.queues[l.s] || []; const i = q.findIndex(e => e.id === id && e.added); if (i >= 0) q.splice(i, 1); }
+Object.keys(ADDED).forEach(insertAdded);
+let CLASSES = [], BY_ID = {};
+function rebuildClasses(){ CLASSES = Object.values(PLAN.queues).flat(); BY_ID = Object.fromEntries(CLASSES.map(e => [e.id, e])); }
+rebuildClasses();
 const BASE_FINISH = Object.values(PLAN.baseline).sort().pop();
 const ALL_TESTS = Object.entries(PLAN.tests).flatMap(([d, ts]) => ts.map(t => ({...t, date:d})));
 
@@ -369,11 +412,16 @@ try {
   if (!Object.keys(done).length) { const old = JSON.parse(localStorage.getItem("rrb-it-plan-v2") || "{}"); Object.keys(old).forEach(k => done[k] = "pre"); }
 } catch (e) { done = {}; }
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(done)); } catch (e) {} };
+// classes already watched on Oliveboard start ticked (once; untick to re-watch one)
+{ const seeded = loadJ(SKEY); let ch = false;
+  CLASSES.forEach(e => { if (e.watched && !seeded[e.id]){ if (!done[e.id]) done[e.id] = "pre"; seeded[e.id] = 1; ch = true; } });
+  if (ch){ save(); saveJ(SKEY, seeded); } }
 const LKEY = "rrb-it-plan-links";
 let LINKS = {};
 try { LINKS = JSON.parse(localStorage.getItem(LKEY) || "{}") || {}; } catch (e) { LINKS = {}; }
 const saveLinks = () => { try { localStorage.setItem(LKEY, JSON.stringify(LINKS)); } catch (e) {} };
 function applyLinks(){
+  LIB.forEach(l => { if (LINKS[l.id] && l.cid !== LINKS[l.id]){ l.cid = LINKS[l.id]; delete l.rel; if (l.s !== "CA") l.q = 1; } });
   CLASSES.forEach(e => {
     if (LINKS[e.id] && e.cid !== LINKS[e.id]){ e.cid = LINKS[e.id]; if (e.s !== "CA") e.q = 1; }
     (e.mem || []).forEach(m => { const k = "m:" + m.t; if (LINKS[k]) m.cid = LINKS[k]; });
@@ -384,10 +432,12 @@ function importOB(rows){
   const norm = t => String(t).replace(/\s+/g, " ").trim().toLowerCase();
   const byT = {}, memT = {};
   CLASSES.forEach(e => { (byT[norm(e.t)] ||= []).push(e); (e.mem || []).forEach(m => (memT[norm(m.t)] ||= []).push({m, s:e.s})); });
+  const libT = {}; LIB.forEach(l => (libT[norm(l.t)] ||= []).push(l));
   let added = 0, watched = 0, notInPlan = 0;
   rows.forEach(([t, cid, sec, comp]) => {
     const code = SEC[sec], k = norm(t);
     const fits = s => code === "*" || code === undefined || s === code;
+    (libT[k] || []).filter(l => fits(l.s) || (code && l.sec === sec)).forEach(l => { if (cid && l.cid !== cid) LINKS[l.id] = cid; });
     const hits = (byT[k] || []).filter(e => fits(e.s)), mhits = (memT[k] || []).filter(x => fits(x.s));
     if (!hits.length && !mhits.length){ notInPlan++; return; }
     hits.forEach(e => {
@@ -403,7 +453,7 @@ function importOB(rows){
 
 applyLinks();
 // ---------- the scheduler (same rules as the original plan, run from today on what's left) ----------
-let SIM = {}, FINISH = null, UNFIT = 0;
+let SIM = {}, FINISH = null, UNFIT = 0, SCHED = {};
 function simulate(){
   const q = {}; for (const [s, list] of Object.entries(PLAN.queues)) q[s] = list.filter(e => !done[e.id]);
   const avail = (e, D, slot) => !e.rel || (slot === "am" ? e.rel < D : e.rel <= D);
@@ -417,7 +467,7 @@ function simulate(){
     }
     return null;
   };
-  SIM = {}; FINISH = null;
+  SIM = {}; FINISH = null; SCHED = {};
   let sect = 0;
   for (let D = planToday; D <= LAST; D = addDays(D, 1)){
     const wd = parseIso(D).getDay(), weekend = wd === 0 || wd === 6;
@@ -460,6 +510,7 @@ function simulate(){
     }
     rec.tasks.push({slot:"close", id:`close-${D}`, t:"Close: Oliveboard daily CA Quiz (10 min) + write every wrong question in your error log (10 min)"});
     if ([...rec.am, ...rec.pm].some(e => !done[e.id])) FINISH = D;
+    [...rec.am, ...rec.pm].forEach(e => { if (!done[e.id]) SCHED[e.id] = D; });
     SIM[D] = rec;
   }
   UNFIT = Object.values(q).reduce((a, l) => a + l.length, 0);
@@ -619,7 +670,7 @@ function firstRun(){
     return;
   }
   if (skippedN){ el.innerHTML = `<div class="callout"><p class="small">${skippedN} lower-value classes are skipped to fit the plan. <button type="button" class="btn link" data-unskip="1">Undo</button></p></div>`; return; }
-  if (Object.keys(done).length){ el.innerHTML = ""; return; }
+  if (Object.keys(done).some(k => !(BY_ID[k] && BY_ID[k].watched))){ el.innerHTML = ""; return; }
   el.innerHTML = `<div class="callout"><h3>Already studied some of this?</h3><p>Mark what you've covered in <b>Already done</b>, and the plan starts from your next class instead of from zero.</p><div class="steps"><button type="button" class="btn primary sm" data-tabgo="done">Mark what I've done</button><button type="button" class="btn sm" data-dismiss="1">Starting fresh</button></div></div>`;
 }
 function renderNext(){
@@ -678,9 +729,47 @@ function renderDoneTab(){
   document.getElementById("obNote").textContent = `${PLAN.watched_before} classes fully watched are already left out of this plan. ${half.length} half-watched ones stay in with half the watch time: ${half.join(", ")}.`;
   document.getElementById("doneLists").innerHTML = SUBJ_ORDER.filter(s => PLAN.queues[s]).map(s => {
     const list = PLAN.queues[s], n = list.filter(e => done[e.id]).length;
-    return `<details class="week" data-k="sub-${s}"><summary><span class="wk-title">${SUBJ[s]}</span><span class="wk-prog${n===list.length?" full":""}">${n}/${list.length}</span></summary><div class="wk-body" style="gap:6px"><div class="steps" style="padding:4px 0 8px"><button type="button" class="btn sm" data-allpre="${s}">Mark all</button><button type="button" class="btn sm" data-clearpre="${s}">Clear "done before"</button></div>${list.map(e => `<div class="ci"><input type="checkbox" id="a-${e.id}" data-preid="${e.id}"${done[e.id]?" checked":""}><label for="a-${e.id}">${esc(e.t)}${done[e.id] === "skip" ? ` <span class="small muted">· skipped to fit</span>` : (done[e.id] && done[e.id] !== "pre" ? ` <span class="small muted">· done ${fmtDM(done[e.id])}</span>` : "")}</label></div>`).join("")}</div></details>`;
+    return `<details class="week" data-k="sub-${s}"><summary><span class="wk-title">${SUBJ[s]}</span><span class="wk-prog${n===list.length?" full":""}">${n}/${list.length}</span></summary><div class="wk-body" style="gap:6px"><div class="steps" style="padding:4px 0 8px"><button type="button" class="btn sm" data-allpre="${s}">Mark all</button><button type="button" class="btn sm" data-clearpre="${s}">Clear "done before"</button></div>${list.map(e => `<div class="ci"><input type="checkbox" id="a-${e.id}" data-preid="${e.id}"${done[e.id]?" checked":""}><label for="a-${e.id}">${esc(e.t)}${e.watched && done[e.id] === "pre" ? ` <span class="small muted">· watched on Oliveboard</span>` : ""}${e.added ? ` <span class="small muted">· added by you</span>` : ""}${done[e.id] === "skip" ? ` <span class="small muted">· skipped to fit</span>` : (done[e.id] && done[e.id] !== "pre" ? ` <span class="small muted">· done ${fmtDM(done[e.id])}</span>` : "")}</label></div>`).join("")}</div></details>`;
   }).join("");
 }
+
+// ---------- All videos ----------
+function libStatus(l){
+  const q = BY_ID[l.id];
+  if (l.st === "bundle"){
+    if (done[l.bid]) return `<span class="st-done">✓ Done</span><span>in "${esc(l.bt)}"</span>`;
+    return `<span class="st-bundle">Notes bundle</span><span>"${esc(l.bt)}"${SCHED[l.bid] ? " · " + fmtShort(SCHED[l.bid]) : ""}</span>`;
+  }
+  if (l.st === "skip" && !q) return `<span class="st-skip">Skipped</span><span>${esc(l.why)}</span>`;
+  if (done[l.id] === "skip") return `<span class="st-skip">Skipped to fit</span>`;
+  if (done[l.id]) return `<span class="st-done">✓ ${l.st === "watched" && done[l.id] === "pre" ? "Watched on Oliveboard" : (done[l.id] === "pre" ? "Done before" : "Done " + fmtDM(done[l.id]))}</span>`;
+  if (SCHED[l.id]) return `<span class="st-plan">Planned · ${fmtShort(SCHED[l.id])}</span>${q && q.added ? "<span>added by you</span>" : ""}`;
+  return `<span class="st-skip">Doesn't fit yet</span>`;
+}
+function libRow(l){
+  const btn = [];
+  if (l.cid){ btn.push(link("btn sm primary", VID(l.cid), "▶ Video")); if (l.q) btn.push(link("btn sm", MAT(l.cid,"quiz"), "Quiz")); btn.push(link("btn sm", MAT(l.cid,"dnotes"), "Notes")); }
+  else btn.push(`<span class="pending">${l.rel ? "Airs " + fmtShort(l.rel) : "Link after it airs"}</span>`);
+  if (l.st === "skip") btn.push(BY_ID[l.id] && BY_ID[l.id].added ? `<button type="button" class="btn sm" data-unadd="${l.id}">Remove from plan</button>` : `<button type="button" class="btn sm" data-add="${l.id}">+ Add to plan</button>`);
+  return `<div class="lrow" data-t="${esc(l.t.toLowerCase())}"><div style="display:grid;gap:4px;min-width:0"><span class="lt">${esc(l.t)}</span><div class="lmeta">${libStatus(l)}<span>${dur(l.len)} class</span></div></div><div class="steps">${btn.join("")}</div></div>`;
+}
+function renderLibrary(){
+  const term = (document.getElementById("libSearch").value || "").trim().toLowerCase();
+  let shown = 0;
+  const html = SUBJ_ORDER.map(s => {
+    const all = LIB.filter(l => l.s === s).sort((a, b) => (a.t === "How to Crack Quant with this course" ? -1 : a.idx) - (b.t === "How to Crack Quant with this course" ? -1 : b.idx));
+    if (!all.length) return "";
+    const rows = term ? all.filter(l => l.t.toLowerCase().includes(term)) : all;
+    if (term && !rows.length) return "";
+    shown += rows.length;
+    const nDone = all.filter(l => done[l.id] && done[l.id] !== "skip" || (l.st === "bundle" && done[l.bid])).length;
+    const nSkip = all.filter(l => l.st === "skip" && !BY_ID[l.id]).length;
+    return `<details class="week" data-k="lib-${s}"${term ? " open" : ""}><summary><span class="wk-title">${SUBJ[s]} · ${all.length} classes</span><span class="wk-prog">${nDone} done${nSkip ? ` · ${nSkip} skipped` : ""}</span></summary><div class="wk-body">${rows.map(libRow).join("")}</div></details>`;
+  }).join("");
+  document.getElementById("libList").innerHTML = html || `<p class="muted">No class matches "${esc(term)}".</p>`;
+  document.getElementById("libCount").textContent = term ? `${shown} match${shown === 1 ? "" : "es"}` : `${LIB.length} classes`;
+}
+document.getElementById("libSearch").addEventListener("input", () => { const keys = openKeys(); renderLibrary(); if (!document.getElementById("libSearch").value) restoreOpen(keys); });
 
 // ---------- Progress + Calendar ----------
 function renderProgress(){
@@ -726,7 +815,7 @@ function openKeys(){ return new Set([...document.querySelectorAll("details[data-
 function restoreOpen(keys){ document.querySelectorAll("details[data-k]").forEach(d => { if (keys.has(d.dataset.k)) d.open = true; }); }
 function rerender(keepScroll){
   const y = window.scrollY, keys = openKeys();
-  simulate(); renderToday(); renderProgress(); renderCalendar(); renderDoneTab();
+  simulate(); renderToday(); renderProgress(); renderCalendar(); renderDoneTab(); renderLibrary();
   if (keepScroll){ restoreOpen(keys); window.scrollTo({top:y}); }
 }
 function mark(id, val){ if (val) done[id] = val; else delete done[id]; save(); rerender(true); }
@@ -743,6 +832,8 @@ document.addEventListener("click", ev => {
   else if (b.dataset.clearpre){ PLAN.queues[b.dataset.clearpre].forEach(e => { if (done[e.id] === "pre") delete done[e.id]; }); save(); rerender(true); }
   else if (b.dataset.goto){ cur = b.dataset.goto; renderDay(); showTab("today"); document.getElementById("dayTitle").scrollIntoView({block:"start"}); }
   else if (b.dataset.tabgo){ showTab(b.dataset.tabgo); window.scrollTo({top:0}); }
+  else if (b.dataset.add){ ADDED[b.dataset.add] = 1; saveJ(AKEY, ADDED); insertAdded(b.dataset.add); rebuildClasses(); rerender(true); toast(`Added to your plan · ${SCHED[b.dataset.add] ? "planned for " + fmtShort(SCHED[b.dataset.add]) : "it doesn't fit yet"}`); }
+  else if (b.dataset.unadd){ delete ADDED[b.dataset.unadd]; saveJ(AKEY, ADDED); removeAdded(b.dataset.unadd); rebuildClasses(); rerender(true); toast("Removed from your plan"); }
   else if (b.dataset.fit){ makeItFit(); }
   else if (b.dataset.unskip){ Object.keys(done).forEach(k => { if (done[k] === "skip") delete done[k]; }); save(); rerender(true); toast("Skipped classes are back in the plan"); }
   else if (b.dataset.dismiss){ done["_start"] = planToday; save(); document.getElementById("first").innerHTML = ""; }
@@ -765,13 +856,13 @@ function linkInfo(){
   document.getElementById("linkInfo").textContent = (LINKS._updated ? `Last updated from Oliveboard: ${fmtDay(LINKS._updated)}. ` : "Not updated from Oliveboard yet. ") + `${missing} classes in your plan are still waiting for a video link (they haven't aired yet).`;
 }
 document.getElementById("copyCode").onclick = async () => {
-  const code = btoa(unescape(encodeURIComponent(JSON.stringify({d: done, l: LINKS})))); const box = document.getElementById("syncBox"); box.value = code;
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify({d: done, l: LINKS, a: ADDED})))); const box = document.getElementById("syncBox"); box.value = code;
   try { await navigator.clipboard.writeText(code); toast("Code copied"); } catch (e) { box.select(); toast("Select the code and copy it"); }
 };
 document.getElementById("loadCode").onclick = () => {
   try {
     const raw = decodeURIComponent(escape(atob(document.getElementById("syncBox").value.trim()))); let incoming, links = {};
-    try { incoming = JSON.parse(raw); if (incoming && incoming.d){ links = incoming.l || {}; incoming = incoming.d; } } catch (e) { incoming = Object.fromEntries(raw.split(",").filter(Boolean).map(k => [k, "pre"])); }
+    try { incoming = JSON.parse(raw); if (incoming && incoming.d){ links = incoming.l || {}; Object.keys(incoming.a || {}).forEach(id => { ADDED[id] = 1; insertAdded(id); }); saveJ(AKEY, ADDED); rebuildClasses(); incoming = incoming.d; } } catch (e) { incoming = Object.fromEntries(raw.split(",").filter(Boolean).map(k => [k, "pre"])); }
     const n = Object.keys(incoming).length; if (!n && !Object.keys(links).length) throw 0;
     Object.entries(incoming).forEach(([k, v]) => { if (!done[k]) done[k] = v; });
     Object.entries(links).forEach(([k, v]) => { if (!LINKS[k] || k === "_updated") LINKS[k] = v; });
@@ -786,7 +877,7 @@ if ((location.hash || "").startsWith("#ob=")){
 rerender(); renderSkipped(); linkInfo();
 if (obResult) toast(obResult.error ? "Couldn't read the Oliveboard data. Try the bookmark again on the course page." : `Updated from Oliveboard: ${obResult.added} new video links, ${obResult.watched} watched classes marked done`);
 const startTab = (location.hash || "").replace("#","");
-showTab(["today","done","progress","calendar","strategy","resources"].includes(startTab) ? startTab : "today");
+showTab(["today","done","library","progress","calendar","strategy","resources"].includes(startTab) ? startTab : "today");
 </script>
 </body>
 </html>

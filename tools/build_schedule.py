@@ -174,6 +174,41 @@ for c in order:
         queues[c["subj"]].append(c)
 
 INITIAL_QUEUES = {k: list(v) for k, v in queues.items()}
+
+# ---------- full library: every class in the course, with its status ----------
+SECTION_OF = {c["id"]: next((name for name, code in SUBJ if f" {name} " in f" {d['All'][int(c['id'][1:])]['meta']} "), "") for c in items}
+INTRO_SUBJ = {"How to Crack IT Mains with this course": "PK", "How to Crack Reasoning with this course": "R",
+              "How to Crack English with this course": "E", "How to Crack Computer Awareness with this course": "C",
+              "How to Crack Quant with this course": "Q"}
+def default_speed(s, t, mins):
+    if s == "Q": return 2.0 if mins > 95 else (1.75 if mins > 80 else 1.5)
+    if s == "R": return 1.75 if ("Mains" in t or t.startswith("Coded")) else 1.5
+    if s == "E": return 1.5
+    return 2.0
+PRACTICE_MIN = {"Q": 15, "R": 25, "PK": 15, "FA": 10, "E": 20, "C": 10, "CA": 5, "GS": 10, "H": 10}
+bundle_of = {}
+for b in bundle_items:
+    for m in b["members"]:
+        bundle_of[(b["subj"], m["t"])] = b
+lib = []
+for c in items:
+    sc = INTRO_SUBJ.get(c["title"], c["subj"]) if c["subj"] in ("S", "Q") else c["subj"]
+    sp = c.get("speed") or default_speed(sc, c["title"], c["mins"])
+    w = c.get("watchm") or max(5, int(round(c["mins"] / sp / 5.0) * 5))
+    pr = c.get("prac") if c.get("prac") is not None else (0 if c["title"].startswith("How to Crack") else PRACTICE_MIN.get(sc, 10))
+    e = {"id": c["id"], "idx": int(c["id"][1:]), "s": sc, "sec": SECTION_OF[c["id"]], "t": c["title"], "len": c["mins"],
+         "sp": sp, "w": w, "pr": pr, "est": w + pr}
+    if c.get("cid"): e["cid"] = c["cid"]
+    elif c.get("release"): e["rel"] = c["release"]
+    if c.get("hasq"): e["q"] = 1
+    if c.get("half"): e["half"] = 1
+    b = bundle_of.get((sc, c["title"]))
+    if c["mode"] == "done": e["st"] = "watched"
+    elif b: e["st"] = "bundle"; e["bid"] = b["id"]; e["bt"] = b["title"]
+    elif c["mode"] == "skip": e["st"] = "skip"; e["why"] = c.get("why", "")
+    else: e["st"] = "plan"
+    lib.append(e)
+LIB_BY_ID = {e["id"]: e for e in lib}
 # ---------- calendar ----------
 START, END = dt.date(2026, 10, 8), dt.date(2026, 12, 19)
 LEARN_END = dt.date(2026, 12, 4)
@@ -346,7 +381,20 @@ def qentry(c):
     if c.get("release"): e["rel"] = c["release"]
     if c["subj"] == "Q": e["cv"] = cv_topic(c["title"])
     return e
-plan = {"queues": {k: [qentry(c) for c in v] for k, v in INITIAL_QUEUES.items()},
+def pos(c):
+    if c["id"].startswith("b"): return LIB_BY_ID[c["id"][1:]]["idx"]
+    return -1 if c["title"] == "How to Crack Quant with this course" else LIB_BY_ID[c["id"]]["idx"]
+export_queues = {}
+for k, v in INITIAL_QUEUES.items():
+    q_ = [qentry(c) for c in v]
+    for e in lib:
+        if e["st"] == "watched" and e["s"] == k:
+            w_ = {x: e[x] for x in ("id", "s", "t", "len", "sp", "w", "pr", "est", "cid", "q") if x in e}
+            w_.update({"m": "watch", "watched": 1})
+            q_.append(w_)
+    q_.sort(key=lambda x: -1 if x["t"] == "How to Crack Quant with this course" else (LIB_BY_ID[x["id"][1:]]["idx"] if x["id"].startswith("b") else LIB_BY_ID[x["id"]]["idx"]))
+    export_queues[k] = q_
+plan = {"queues": export_queues, "lib": lib,
         "baseline": baseline,
         "tests": {k: [{"id": f"test-{k}", "t": t[0], "est": t[1], "list": t[2][0], "url": t[2][1]} for t in v] for k, v in TESTS.items()},
         "sectionals": [{"t": a, "list": b[0], "url": b[1]} for a, b in PHASE2_SECTIONALS],
